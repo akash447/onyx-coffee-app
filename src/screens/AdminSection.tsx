@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import AdminDashboard from '../../cms/src/components/AdminDashboard';
+import AdminDashboard from '../components/AdminDashboard';
 import { DeviceType, PlatformType } from '../types';
 
 interface AdminSectionProps {
