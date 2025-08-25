@@ -6,6 +6,7 @@ import {
   ScrollView,
   Pressable,
   Image,
+  Alert,
 } from 'react-native';
 import { DeviceType, PlatformType } from '../types';
 
@@ -38,6 +39,35 @@ const AboutSection: React.FC<AboutSectionProps> = ({ deviceType }) => {
     },
   ];
 
+  const handleTilePress = (tileId: string) => {
+    const content = {
+      story: {
+        title: '🏢 Our Story',
+        message: 'Founded in 2024, Onyx Coffee began with a simple mission: to bring exceptional coffee experiences directly to your doorstep.\n\n• Premium bean sourcing\n• Direct farmer partnerships\n• Sustainable practices\n• Community focused\n• Technology driven'
+      },
+      sourcing: {
+        title: '🌱 Sourcing & Ethics',
+        message: 'We believe in ethical sourcing and sustainable farming practices.\n\n• Fair trade partnerships\n• Direct farmer relationships\n• Environmental sustainability\n• Quality over quantity\n• Community development'
+      },
+      faq: {
+        title: '❓ Frequently Asked Questions',
+        message: 'Common questions about Onyx Coffee:\n\n• Shipping: 2-3 business days\n• Returns: 30-day guarantee\n• Storage: Keep beans sealed\n• Grinding: Fresh ground daily\n• Support: 24/7 customer care'
+      }
+    };
+
+    const info = content[tileId as keyof typeof content];
+    if (info) {
+      Alert.alert(
+        info.title,
+        info.message,
+        [
+          { text: 'Back to About', style: 'default' },
+          { text: 'Contact Support', style: 'default' }
+        ]
+      );
+    }
+  };
+
   const renderTile = (tile: typeof aboutTiles[0]) => (
     <Pressable
       key={tile.id}
@@ -45,6 +75,7 @@ const AboutSection: React.FC<AboutSectionProps> = ({ deviceType }) => {
         styles.tile,
         isDesktop ? styles.desktopTile : styles.mobileTile,
       ]}
+      onPress={() => handleTilePress(tile.id)}
     >
       <View style={styles.tileImageContainer}>
         <Image

@@ -204,6 +204,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
+    maxWidth: 600,
+    alignSelf: 'center',
+    width: '100%',
   },
   progressContainer: {
     marginBottom: 32,
@@ -227,6 +230,7 @@ const styles = StyleSheet.create({
   questionContainer: {
     flex: 1,
     justifyContent: 'center',
+    paddingVertical: 32,
   },
   questionText: {
     fontSize: 18,
@@ -289,6 +293,7 @@ const styles = StyleSheet.create({
   },
   recommendationContainer: {
     marginBottom: 24,
+    alignItems: 'center',
   },
   summaryContainer: {
     backgroundColor: '#f5f5f5',

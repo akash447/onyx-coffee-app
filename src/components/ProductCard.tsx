@@ -27,9 +27,19 @@ const ProductCard: React.FC<ProductCardProps> = ({
     e.stopPropagation(); // Prevent card press when button is pressed
     try {
       await addToCart(product, 1);
-      Alert.alert('Added to Cart', `${product.name} has been added to your cart.`);
+      Alert.alert(
+        '✅ Added to Cart!', 
+        `${product.name} has been added to your cart.\n\nPrice: ₹${product.price}`, 
+        [
+          { text: 'Continue Shopping', style: 'default' },
+          { text: 'View Cart', style: 'default', onPress: () => {
+            // TODO: Navigate to cart
+            console.log('Navigate to cart');
+          }}
+        ]
+      );
     } catch (error) {
-      Alert.alert('Error', 'Failed to add item to cart. Please try again.');
+      Alert.alert('❌ Error', 'Failed to add item to cart. Please try again.');
     }
   };
 
@@ -37,10 +47,19 @@ const ProductCard: React.FC<ProductCardProps> = ({
     e.stopPropagation(); // Prevent card press when button is pressed
     try {
       await addToCart(product, 1);
-      // TODO: Navigate to checkout
-      Alert.alert('Buy Now', 'Redirecting to checkout...');
+      Alert.alert(
+        '🚀 Quick Purchase!', 
+        `${product.name}\nPrice: ₹${product.price}\n\nProceed to checkout?`, 
+        [
+          { text: 'Continue Shopping', style: 'cancel' },
+          { text: 'Proceed to Checkout', style: 'default', onPress: () => {
+            // TODO: Navigate to checkout
+            Alert.alert('🔄 Processing...', 'Redirecting to secure checkout...');
+          }}
+        ]
+      );
     } catch (error) {
-      Alert.alert('Error', 'Failed to process purchase. Please try again.');
+      Alert.alert('❌ Error', 'Failed to process purchase. Please try again.');
     }
   };
 

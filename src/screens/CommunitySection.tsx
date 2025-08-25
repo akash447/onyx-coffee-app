@@ -6,6 +6,7 @@ import {
   ScrollView,
   Pressable,
   Image,
+  Alert,
 } from 'react-native';
 import { RouteType, DeviceType, PlatformType } from '../types';
 
@@ -46,7 +47,33 @@ const CommunitySection: React.FC<CommunitySectionProps> = ({
   ];
 
   const handleTilePress = (page: 'brew' | 'stories' | 'tips') => {
-    onNavigate({ kind: 'communityPage', page });
+    // For now, show an alert with content preview
+    const content = {
+      brew: {
+        title: '☕ Brew Guides',
+        message: 'Coming Soon!\n\n• Pour-over techniques\n• Espresso brewing\n• French press methods\n• Cold brew recipes\n• Grind size guide'
+      },
+      stories: {
+        title: '📖 User Stories',
+        message: 'Coming Soon!\n\n• Customer reviews\n• Coffee journey stories\n• Brewing experiences\n• Community highlights\n• Photo submissions'
+      },
+      tips: {
+        title: '💡 Tips & Tricks',
+        message: 'Coming Soon!\n\n• Storage tips\n• Brewing temperature\n• Water quality guide\n• Equipment maintenance\n• Flavor enhancement'
+      }
+    };
+    
+    Alert.alert(
+      content[page].title,
+      content[page].message,
+      [
+        { text: 'Back to Community', style: 'default' },
+        { text: 'Subscribe for Updates', style: 'default' }
+      ]
+    );
+    
+    // TODO: Replace with actual navigation
+    // onNavigate({ kind: 'communityPage', page });
   };
 
   const renderTile = (tile: typeof communityTiles[0]) => (

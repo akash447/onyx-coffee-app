@@ -15,7 +15,7 @@ export interface CatalogItem {
 
 // Navigation and Routing Types
 export type RouteType = 
-  | { kind: 'section'; section: 'product' | 'community' | 'about' }
+  | { kind: 'section'; section: 'product' | 'community' | 'about' | 'admin' }
   | { kind: 'communityPage'; page: 'brew' | 'stories' | 'tips' }
   | { kind: 'sku'; skuId: string };
 

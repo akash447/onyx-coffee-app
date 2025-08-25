@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '../contexts/AuthContext';
+import { useCart } from '../contexts/CartContext';
 import { DeviceType } from '../types';
 
 interface BannerProps {
@@ -21,10 +22,13 @@ interface BannerProps {
 
 const Banner: React.FC<BannerProps> = ({ deviceType, imageUrl }) => {
   const { user, isAuthenticated, login, logout, demoLogin, loading } = useAuth();
+  const { itemCount } = useCart();
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [otp, setOtp] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpLoading, setOtpLoading] = useState(false);
 
   const { width } = Dimensions.get('window');
   const isDesktop = deviceType === 'desktop';
@@ -34,15 +38,60 @@ const Banner: React.FC<BannerProps> = ({ deviceType, imageUrl }) => {
     ? Math.max(140, Math.min(240, width * 0.2)) 
     : Math.max(88, Math.min(180, width * 0.13));
 
-  const handleLogin = async () => {
-    try {
-      await login(email, password);
-      setShowLoginModal(false);
-      setEmail('');
-      setPassword('');
-    } catch (error) {
-      Alert.alert('Login Failed', 'Please check your credentials and try again.');
+  const handleSendOtp = async () => {
+    if (!phoneNumber || phoneNumber.length !== 10) {
+      Alert.alert('Invalid Phone Number', 'Please enter a valid 10-digit mobile number.');
+      return;
     }
+    
+    setOtpLoading(true);
+    try {
+      // Simulate OTP sending - replace with real SMS API
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      setOtpSent(true);
+      Alert.alert('📱 OTP Sent!', `Verification code sent to +91 ${phoneNumber}\n\n(Demo: Use 123456 as OTP)`);
+    } catch (error) {
+      Alert.alert('❌ Error', 'Failed to send OTP. Please try again.');
+    } finally {
+      setOtpLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    if (!otp || otp.length !== 6) {
+      Alert.alert('Invalid OTP', 'Please enter the 6-digit verification code.');
+      return;
+    }
+
+    if (otp !== '123456') {
+      Alert.alert('❌ Invalid OTP', 'Please check the verification code and try again.');
+      return;
+    }
+
+    try {
+      // Create user from phone number
+      const user = {
+        id: `phone_${phoneNumber}`,
+        name: `User ${phoneNumber.slice(-4)}`,
+        email: `+91${phoneNumber}@onyx-coffee.com`,
+        phone: `+91${phoneNumber}`,
+        initials: 'U',
+      };
+      
+      await login(user.email, 'phone_auth');
+      setShowLoginModal(false);
+      resetPhoneForm();
+      Alert.alert('✅ Welcome!', `Successfully logged in with +91 ${phoneNumber}`);
+    } catch (error) {
+      Alert.alert('Login Failed', 'Please try again.');
+    }
+  };
+
+  const resetPhoneForm = () => {
+    setPhoneNumber('');
+    setOtp('');
+    setOtpSent(false);
+    setOtpLoading(false);
   };
 
   const handleDemoLogin = async () => {
@@ -120,9 +169,22 @@ const Banner: React.FC<BannerProps> = ({ deviceType, imageUrl }) => {
               <Text style={styles.brandText}>Onyx Coffee</Text>
             </View>
 
-            {/* Auth button */}
-            <View style={styles.authContainer}>
-              {renderAuthButton()}
+            {/* Cart and Auth buttons */}
+            <View style={styles.rightContainer}>
+              {/* Cart Icon */}
+              <Pressable style={styles.cartButton}>
+                <Text style={styles.cartIcon}>🛒</Text>
+                {itemCount > 0 && (
+                  <View style={styles.cartBadge}>
+                    <Text style={styles.cartBadgeText}>{itemCount}</Text>
+                  </View>
+                )}
+              </Pressable>
+              
+              {/* Auth button */}
+              <View style={styles.authContainer}>
+                {renderAuthButton()}
+              </View>
             </View>
           </LinearGradient>
         </ImageBackground>
@@ -137,41 +199,80 @@ const Banner: React.FC<BannerProps> = ({ deviceType, imageUrl }) => {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Login to Onyx</Text>
+            <Text style={styles.modalTitle}>🇮🇳 Login with Mobile Number</Text>
+            <Text style={styles.modalSubtitle}>Enter your mobile number to receive OTP</Text>
             
-            <TextInput
-              style={styles.input}
-              placeholder="Email"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
+            {!otpSent ? (
+              <>
+                <View style={styles.phoneInputContainer}>
+                  <Text style={styles.countryCode}>+91</Text>
+                  <TextInput
+                    style={styles.phoneInput}
+                    placeholder="Mobile Number (10 digits)"
+                    value={phoneNumber}
+                    onChangeText={setPhoneNumber}
+                    keyboardType="phone-pad"
+                    maxLength={10}
+                  />
+                </View>
+                
+                <View style={styles.modalButtons}>
+                  <Pressable 
+                    style={[styles.primaryButton, otpLoading && styles.disabledButton]} 
+                    onPress={handleSendOtp}
+                    disabled={otpLoading}
+                  >
+                    <Text style={styles.primaryButtonText}>
+                      {otpLoading ? 'Sending OTP...' : 'Send OTP'}
+                    </Text>
+                  </Pressable>
+                </View>
+              </>
+            ) : (
+              <>
+                <Text style={styles.otpSentText}>
+                  📱 OTP sent to +91 {phoneNumber}
+                </Text>
+                
+                <TextInput
+                  style={styles.otpInput}
+                  placeholder="Enter 6-digit OTP"
+                  value={otp}
+                  onChangeText={setOtp}
+                  keyboardType="number-pad"
+                  maxLength={6}
+                />
+                
+                <View style={styles.modalButtons}>
+                  <Pressable style={styles.primaryButton} onPress={handleVerifyOtp}>
+                    <Text style={styles.primaryButtonText}>Verify OTP</Text>
+                  </Pressable>
+                  
+                  <Pressable 
+                    style={styles.secondaryButton} 
+                    onPress={() => setOtpSent(false)}
+                  >
+                    <Text style={styles.secondaryButtonText}>Change Number</Text>
+                  </Pressable>
+                </View>
+              </>
+            )}
             
-            <TextInput
-              style={styles.input}
-              placeholder="Password"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-            />
+            <View style={styles.divider} />
             
-            <View style={styles.modalButtons}>
-              <Pressable style={styles.primaryButton} onPress={handleLogin}>
-                <Text style={styles.primaryButtonText}>Login</Text>
-              </Pressable>
-              
-              <Pressable style={styles.secondaryButton} onPress={handleDemoLogin}>
-                <Text style={styles.secondaryButtonText}>Demo Login</Text>
-              </Pressable>
-              
-              <Pressable 
-                style={styles.cancelButton} 
-                onPress={() => setShowLoginModal(false)}
-              >
-                <Text style={styles.cancelButtonText}>Cancel</Text>
-              </Pressable>
-            </View>
+            <Pressable style={styles.demoButton} onPress={handleDemoLogin}>
+              <Text style={styles.demoButtonText}>🚀 Quick Demo Login</Text>
+            </Pressable>
+            
+            <Pressable 
+              style={styles.cancelButton} 
+              onPress={() => {
+                setShowLoginModal(false);
+                resetPhoneForm();
+              }}
+            >
+              <Text style={styles.cancelButtonText}>Cancel</Text>
+            </Pressable>
           </View>
         </View>
       </Modal>
@@ -236,6 +337,40 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
   },
+  rightContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  cartButton: {
+    position: 'relative',
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 20,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 40,
+  },
+  cartIcon: {
+    fontSize: 16,
+  },
+  cartBadge: {
+    position: 'absolute',
+    top: -8,
+    right: -8,
+    backgroundColor: '#e74c3c',
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cartBadgeText: {
+    color: 'white',
+    fontSize: 10,
+    fontWeight: '600',
+  },
   authContainer: {
     alignItems: 'flex-end',
   },
@@ -292,8 +427,78 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 18,
     fontWeight: '600',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  modalSubtitle: {
+    fontSize: 14,
+    color: '#666',
     marginBottom: 20,
     textAlign: 'center',
+  },
+  phoneInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    marginBottom: 12,
+    overflow: 'hidden',
+  },
+  countryCode: {
+    backgroundColor: '#f5f5f5',
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    fontSize: 14,
+    fontWeight: '600',
+    borderRightWidth: 1,
+    borderRightColor: '#ddd',
+  },
+  phoneInput: {
+    flex: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    fontSize: 14,
+  },
+  otpInput: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    marginBottom: 12,
+    fontSize: 16,
+    textAlign: 'center',
+    letterSpacing: 4,
+  },
+  otpSentText: {
+    fontSize: 14,
+    color: '#27ae60',
+    marginBottom: 16,
+    textAlign: 'center',
+    fontWeight: '500',
+  },
+  disabledButton: {
+    opacity: 0.6,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#eee',
+    marginVertical: 16,
+  },
+  demoButton: {
+    backgroundColor: '#f8f9fa',
+    borderWidth: 1,
+    borderColor: '#dee2e6',
+    borderRadius: 8,
+    paddingVertical: 12,
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  demoButtonText: {
+    color: '#495057',
+    fontSize: 14,
+    fontWeight: '500',
   },
   input: {
     borderWidth: 1,

@@ -20,6 +20,7 @@ import SideRail from './src/components/SideRail';
 import ProductSection from './src/screens/ProductSection';
 import CommunitySection from './src/screens/CommunitySection';
 import AboutSection from './src/screens/AboutSection';
+import AdminSection from './src/screens/AdminSection';
 
 // Types
 import { RouteType, DeviceType, PlatformType } from './src/types';
@@ -100,6 +101,13 @@ export default function App() {
           case 'about':
             return (
               <AboutSection
+                deviceType={deviceType}
+                platformType={platformType}
+              />
+            );
+          case 'admin':
+            return (
+              <AdminSection
                 deviceType={deviceType}
                 platformType={platformType}
               />

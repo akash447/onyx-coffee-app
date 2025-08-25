@@ -44,9 +44,15 @@ const SideRail: React.FC<SideRailProps> = ({
       icon: 'ℹ️',
       section: 'about' as const,
     },
+    {
+      id: 'admin',
+      label: 'Admin',
+      icon: '⚙️',
+      section: 'admin' as const,
+    },
   ];
 
-  const handleItemPress = (section: 'product' | 'community' | 'about') => {
+  const handleItemPress = (section: 'product' | 'community' | 'about' | 'admin') => {
     if (isDesktop && onScrollToSection) {
       // Desktop: scroll to section
       onScrollToSection(section);
