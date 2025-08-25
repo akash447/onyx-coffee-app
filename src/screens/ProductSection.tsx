@@ -71,6 +71,7 @@ const ProductSection: React.FC<ProductSectionProps> = ({
           <View style={[styles.gridItem, { width: `${100 / numColumns}%` }]}>
             <ProductCard
               product={item}
+              variant="grid"
               onPress={handleProductPress}
             />
           </View>
@@ -274,11 +275,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   gridContainer: {
-    paddingVertical: 8,
+    paddingVertical: 16,
   },
   gridItem: {
-    paddingHorizontal: 6,
-    paddingVertical: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 8,
   },
   loadingContainer: {
     flex: 1,

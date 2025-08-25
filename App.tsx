@@ -21,6 +21,7 @@ import ProductSection from './src/screens/ProductSection';
 import CommunitySection from './src/screens/CommunitySection';
 import AboutSection from './src/screens/AboutSection';
 import AdminSection from './src/screens/AdminSection';
+import CartSection from './src/screens/CartSection';
 
 // Types
 import { RouteType, DeviceType, PlatformType } from './src/types';
@@ -70,6 +71,14 @@ export default function App() {
     setCurrentRoute(route);
   };
 
+  const handleCartPress = () => {
+    setCurrentRoute({ kind: 'section', section: 'cart' });
+  };
+
+  const handleBackToShopping = () => {
+    setCurrentRoute({ kind: 'section', section: 'product' });
+  };
+
   const handleScrollToSection = (section: string) => {
     // For desktop: smooth scroll to section
     console.log(`Scrolling to section: ${section}`);
@@ -112,6 +121,14 @@ export default function App() {
                 platformType={platformType}
               />
             );
+          case 'cart':
+            return (
+              <CartSection
+                deviceType={deviceType}
+                platformType={platformType}
+                onBackToShopping={handleBackToShopping}
+              />
+            );
           default:
             return <ProductSection deviceType={deviceType} platformType={platformType} currentRoute={currentRoute} onNavigate={handleNavigate} />;
         }
@@ -151,7 +168,10 @@ export default function App() {
                 />
                 
                 {/* Banner */}
-                <Banner deviceType={deviceType} />
+                <Banner 
+                  deviceType={deviceType} 
+                  onCartPress={handleCartPress}
+                />
 
                 {/* Main Content Area */}
                 <View style={[styles.mainContent, { gap }]}>

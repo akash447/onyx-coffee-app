@@ -158,21 +158,7 @@ const TasteChatbot: React.FC<TasteChatbotProps> = ({
 
   return (
     <View style={styles.container}>
-      <View style={styles.progressContainer}>
-        <View style={styles.progressBar}>
-          <View 
-            style={[
-              styles.progressFill,
-              { width: `${((currentQuestionIndex + 1) / questions.length) * 100}%` }
-            ]}
-          />
-        </View>
-        <Text style={styles.progressText}>
-          {currentQuestionIndex + 1} of {questions.length}
-        </Text>
-      </View>
-
-      <View style={styles.questionContainer}>
+      <View style={styles.chatbotCard}>
         <Text style={styles.questionText}>{currentQuestion.question}</Text>
         
         <View style={styles.optionsContainer}>
@@ -203,53 +189,17 @@ const TasteChatbot: React.FC<TasteChatbotProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
-    maxWidth: 600,
-    alignSelf: 'center',
+    padding: 0,
+    maxWidth: 500,
+    alignSelf: 'flex-start',
     width: '100%',
   },
-  progressContainer: {
-    marginBottom: 32,
-  },
-  progressBar: {
-    height: 4,
-    backgroundColor: '#e0e0e0',
-    borderRadius: 2,
-    marginBottom: 8,
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: '#000',
-    borderRadius: 2,
-  },
-  progressText: {
-    fontSize: 12,
-    color: '#666',
-    textAlign: 'center',
-  },
-  questionContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    paddingVertical: 32,
-  },
-  questionText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#000',
-    textAlign: 'center',
-    marginBottom: 32,
-    lineHeight: 24,
-  },
-  optionsContainer: {
-    gap: 12,
-  },
-  optionButton: {
-    backgroundColor: 'white',
-    borderWidth: 2,
-    borderColor: '#e0e0e0',
+  chatbotCard: {
+    padding: 16,
+    backgroundColor: '#f8f9fa',
     borderRadius: 12,
-    paddingVertical: 16,
-    paddingHorizontal: 20,
+    borderWidth: 1,
+    borderColor: '#e9ecef',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -259,11 +209,30 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 2,
   },
+  questionText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#000',
+    marginBottom: 12,
+    lineHeight: 20,
+  },
+  optionsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  optionButton: {
+    backgroundColor: 'white',
+    borderWidth: 1,
+    borderColor: '#dee2e6',
+    borderRadius: 20,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+  },
   optionText: {
-    fontSize: 16,
+    fontSize: 12,
     fontWeight: '500',
     color: '#000',
-    textAlign: 'center',
   },
   backButton: {
     alignSelf: 'flex-start',
@@ -293,7 +262,8 @@ const styles = StyleSheet.create({
   },
   recommendationContainer: {
     marginBottom: 24,
-    alignItems: 'center',
+    alignItems: 'flex-start',
+    maxWidth: 300,
   },
   summaryContainer: {
     backgroundColor: '#f5f5f5',

@@ -88,6 +88,56 @@ const ProductCard: React.FC<ProductCardProps> = ({
     return `₹${price}`;
   };
 
+  if (variant === 'grid') {
+    return (
+      <Pressable
+        style={styles.gridCard}
+        onPress={() => onPress?.(product)}
+      >
+        {/* Product Image */}
+        <View style={styles.gridImageContainer}>
+          <Image
+            source={{ uri: product.image }}
+            style={styles.gridImage}
+            resizeMode="cover"
+          />
+        </View>
+
+        <View style={styles.gridContent}>
+          <Text style={styles.gridProductName} numberOfLines={1}>
+            {product.name}
+          </Text>
+
+          {/* Rating and Reviews */}
+          <View style={styles.gridRatingContainer}>
+            <Text style={styles.gridStars}>{renderStars(product.rating)}</Text>
+            <Text style={styles.gridRatingText}>({product.reviews})</Text>
+          </View>
+
+          {/* Price */}
+          <Text style={styles.gridPrice}>{formatPrice(product.price)}</Text>
+
+          {/* Action Buttons */}
+          <View style={styles.gridActionButtons}>
+            <Pressable
+              style={styles.gridBuyButton}
+              onPress={handleBuyNow}
+            >
+              <Text style={styles.gridBuyButtonText}>Buy</Text>
+            </Pressable>
+
+            <Pressable
+              style={styles.gridAddButton}
+              onPress={handleAddToCart}
+            >
+              <Text style={styles.gridAddButtonText}>Add</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Pressable>
+    );
+  }
+
   return (
     <Pressable
       style={[
@@ -149,6 +199,91 @@ const ProductCard: React.FC<ProductCardProps> = ({
 };
 
 const styles = StyleSheet.create({
+  // New Grid Card Styles (matching reference design)
+  gridCard: {
+    backgroundColor: 'white',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e9ecef',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+    overflow: 'hidden',
+  },
+  gridImageContainer: {
+    width: '100%',
+    aspectRatio: 4/5, // 4:5 aspect ratio as specified in reference
+    backgroundColor: '#f8f9fa',
+  },
+  gridImage: {
+    width: '100%',
+    height: '100%',
+  },
+  gridContent: {
+    padding: 12,
+  },
+  gridProductName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#000',
+    marginBottom: 4,
+  },
+  gridRatingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6,
+    gap: 4,
+  },
+  gridStars: {
+    fontSize: 12,
+    color: '#ffa500',
+  },
+  gridRatingText: {
+    fontSize: 12,
+    color: '#6c757d',
+  },
+  gridPrice: {
+    fontSize: 14,
+    color: '#6c757d',
+    marginBottom: 8,
+  },
+  gridActionButtons: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  gridBuyButton: {
+    flex: 1,
+    backgroundColor: '#000',
+    borderRadius: 6,
+    paddingVertical: 8,
+    alignItems: 'center',
+  },
+  gridBuyButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  gridAddButton: {
+    flex: 1,
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: '#000',
+    borderRadius: 6,
+    paddingVertical: 8,
+    alignItems: 'center',
+  },
+  gridAddButtonText: {
+    color: '#000',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  
+  // Original Card Styles
   card: {
     backgroundColor: 'white',
     borderRadius: 8,

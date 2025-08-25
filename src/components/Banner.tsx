@@ -18,9 +18,10 @@ import { DeviceType } from '../types';
 interface BannerProps {
   deviceType: DeviceType;
   imageUrl?: string;
+  onCartPress?: () => void;
 }
 
-const Banner: React.FC<BannerProps> = ({ deviceType, imageUrl }) => {
+const Banner: React.FC<BannerProps> = ({ deviceType, imageUrl, onCartPress }) => {
   const { user, isAuthenticated, login, logout, demoLogin, loading } = useAuth();
   const { itemCount } = useCart();
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -172,7 +173,25 @@ const Banner: React.FC<BannerProps> = ({ deviceType, imageUrl }) => {
             {/* Cart and Auth buttons */}
             <View style={styles.rightContainer}>
               {/* Cart Icon */}
-              <Pressable style={styles.cartButton}>
+              <Pressable 
+                style={styles.cartButton}
+                onPress={() => {
+                  if (onCartPress) {
+                    onCartPress();
+                  } else {
+                    Alert.alert(
+                      '🛒 Shopping Cart', 
+                      itemCount > 0 
+                        ? `You have ${itemCount} item${itemCount > 1 ? 's' : ''} in your cart.\n\nCart functionality will be enhanced in the next update!`
+                        : 'Your cart is empty.\n\nAdd some delicious coffee to get started!',
+                      [
+                        { text: 'Continue Shopping', style: 'default' },
+                        { text: 'OK', style: 'cancel' }
+                      ]
+                    );
+                  }
+                }}
+              >
                 <Text style={styles.cartIcon}>🛒</Text>
                 {itemCount > 0 && (
                   <View style={styles.cartBadge}>
