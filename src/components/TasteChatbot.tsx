@@ -6,6 +6,7 @@ import {
   StyleSheet,
   ScrollView,
   Alert,
+  Image,
 } from 'react-native';
 import { ChatbotQuestion, ChatbotResponse, CatalogItem } from '../types';
 import { useCatalog } from '../contexts/CatalogContext';
@@ -158,7 +159,37 @@ const TasteChatbot: React.FC<TasteChatbotProps> = ({
 
   return (
     <View style={styles.container}>
+      {/* Animated Background GIF */}
+      <View style={styles.backgroundContainer}>
+        <Image
+          source={{ 
+            uri: 'https://media.giphy.com/media/l0HlBO7eyXzSZkJri/giphy.gif' 
+          }}
+          style={styles.backgroundGif}
+          resizeMode="cover"
+        />
+        <View style={styles.overlayGradient} />
+      </View>
+
+      {/* Coffee Animation GIF */}
+      <View style={styles.sideAnimationContainer}>
+        <Image
+          source={{ 
+            uri: 'https://media.giphy.com/media/5nkXJZbsF9xL8O8M28/giphy.gif' 
+          }}
+          style={styles.sideAnimation}
+          resizeMode="contain"
+        />
+      </View>
+
       <View style={styles.chatbotCard}>
+        <View style={styles.welcomeHeader}>
+          <Text style={styles.welcomeTitle}>☕ Coffee Taste Assistant</Text>
+          <Text style={styles.welcomeSubtitle}>
+            Let's find your perfect brew! Answer a few questions and discover coffee that matches your taste.
+          </Text>
+        </View>
+
         <Text style={styles.questionText}>{currentQuestion.question}</Text>
         
         <View style={styles.optionsContainer}>
@@ -172,6 +203,21 @@ const TasteChatbot: React.FC<TasteChatbotProps> = ({
             </Pressable>
           ))}
         </View>
+
+        {/* Progress indicator */}
+        <View style={styles.progressContainer}>
+          <Text style={styles.progressText}>
+            Question {currentQuestionIndex + 1} of {questions.length}
+          </Text>
+          <View style={styles.progressBar}>
+            <View 
+              style={[
+                styles.progressFill, 
+                { width: `${((currentQuestionIndex + 1) / questions.length) * 100}%` }
+              ]} 
+            />
+          </View>
+        </View>
       </View>
 
       {currentQuestionIndex > 0 && (
@@ -182,6 +228,24 @@ const TasteChatbot: React.FC<TasteChatbotProps> = ({
           <Text style={styles.backButtonText}>← Previous</Text>
         </Pressable>
       )}
+
+      {/* Decorative Coffee Elements */}
+      <View style={styles.decorativeElements}>
+        <Image
+          source={{ 
+            uri: 'https://media.giphy.com/media/xT9IgG50Fb7Mi0prBC/giphy.gif' 
+          }}
+          style={styles.decorativeGif1}
+          resizeMode="contain"
+        />
+        <Image
+          source={{ 
+            uri: 'https://media.giphy.com/media/l0HlBO7eyXzSZkJri/giphy.gif' 
+          }}
+          style={styles.decorativeGif2}
+          resizeMode="cover"
+        />
+      </View>
     </View>
   );
 };
@@ -193,21 +257,127 @@ const styles = StyleSheet.create({
     maxWidth: 500,
     alignSelf: 'flex-start',
     width: '100%',
+    position: 'relative',
+    minHeight: 600,
+  },
+  backgroundContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: -1,
+  },
+  backgroundGif: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    opacity: 0.15,
+  },
+  overlayGradient: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+  },
+  sideAnimationContainer: {
+    position: 'absolute',
+    top: 20,
+    right: -120,
+    zIndex: 1,
+  },
+  sideAnimation: {
+    width: 150,
+    height: 150,
+    opacity: 0.7,
+  },
+  decorativeElements: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: -1,
+  },
+  decorativeGif1: {
+    position: 'absolute',
+    bottom: 50,
+    left: -50,
+    width: 80,
+    height: 80,
+    opacity: 0.6,
+  },
+  decorativeGif2: {
+    position: 'absolute',
+    top: 150,
+    right: -80,
+    width: 60,
+    height: 60,
+    opacity: 0.4,
   },
   chatbotCard: {
-    padding: 16,
-    backgroundColor: '#f8f9fa',
-    borderRadius: 12,
+    padding: 20,
+    backgroundColor: 'rgba(248, 249, 250, 0.95)',
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: '#e9ecef',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 1,
+      height: 4,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 8,
+    backdropFilter: 'blur(10px)',
+    zIndex: 2,
+  },
+  welcomeHeader: {
+    alignItems: 'center',
+    marginBottom: 20,
+    padding: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e9ecef',
+  },
+  welcomeTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#333',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  welcomeSubtitle: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  progressContainer: {
+    marginTop: 20,
+    alignItems: 'center',
+  },
+  progressText: {
+    fontSize: 12,
+    color: '#666',
+    marginBottom: 8,
+  },
+  progressBar: {
+    width: '100%',
+    height: 4,
+    backgroundColor: '#e9ecef',
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: '#6f42c1',
+    borderRadius: 2,
   },
   questionText: {
     fontSize: 14,
@@ -223,16 +393,26 @@ const styles = StyleSheet.create({
   },
   optionButton: {
     backgroundColor: 'white',
-    borderWidth: 1,
-    borderColor: '#dee2e6',
-    borderRadius: 20,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
+    borderWidth: 2,
+    borderColor: '#6f42c1',
+    borderRadius: 25,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    minWidth: 140,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   optionText: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: '#000',
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#6f42c1',
   },
   backButton: {
     alignSelf: 'flex-start',

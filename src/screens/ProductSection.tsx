@@ -30,7 +30,7 @@ const ProductSection: React.FC<ProductSectionProps> = ({
   const [selectedProduct, setSelectedProduct] = useState<CatalogItem | null>(null);
 
   const isDesktop = deviceType === 'desktop';
-  const numColumns = isDesktop ? 3 : 2;
+  const numColumns = isDesktop ? 4 : 2;
 
   // Handle tab changes
   const handleTabChange = (tab: ProductTab) => {
@@ -68,7 +68,7 @@ const ProductSection: React.FC<ProductSectionProps> = ({
         numColumns={numColumns}
         key={numColumns} // Force re-render when columns change
         renderItem={({ item }) => (
-          <View style={[styles.gridItem, { width: `${100 / numColumns}%` }]}>
+          <View style={[styles.gridItem, { flex: 1, maxWidth: `${100 / numColumns}%` }]}>
             <ProductCard
               product={item}
               variant="grid"
@@ -274,12 +274,26 @@ const styles = StyleSheet.create({
   tabContent: {
     flex: 1,
   },
+  exploreContainer: {
+    paddingVertical: 8,
+  },
+  exploreItem: {
+    marginBottom: 12,
+  },
+  listContainer: {
+    paddingVertical: 8,
+  },
+  listItem: {
+    marginBottom: 12,
+  },
   gridContainer: {
-    paddingVertical: 16,
+    paddingVertical: 8,
+    paddingHorizontal: 8,
   },
   gridItem: {
-    paddingHorizontal: 8,
-    paddingVertical: 8,
+    paddingHorizontal: 4,
+    paddingVertical: 4,
+    minWidth: 0,
   },
   loadingContainer: {
     flex: 1,

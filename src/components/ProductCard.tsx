@@ -108,6 +108,11 @@ const ProductCard: React.FC<ProductCardProps> = ({
             {product.name}
           </Text>
 
+          {/* Product Description */}
+          <Text style={styles.gridDescription} numberOfLines={2}>
+            {product.desc}
+          </Text>
+
           {/* Rating and Reviews */}
           <View style={styles.gridRatingContainer}>
             <Text style={styles.gridStars}>{renderStars(product.rating)}</Text>
@@ -202,22 +207,22 @@ const styles = StyleSheet.create({
   // New Grid Card Styles (matching reference design)
   gridCard: {
     backgroundColor: 'white',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#e9ecef',
+    borderRadius: 8,
+    borderWidth: 1.5,
+    borderColor: '#d1d5db',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 1,
+      height: 2,
     },
     shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+    shadowRadius: 3,
+    elevation: 3,
     overflow: 'hidden',
   },
   gridImageContainer: {
     width: '100%',
-    aspectRatio: 4/5, // 4:5 aspect ratio as specified in reference
+    aspectRatio: 1, // 1:1 square aspect ratio for better grid layout
     backgroundColor: '#f8f9fa',
   },
   gridImage: {
@@ -225,47 +230,55 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   gridContent: {
-    padding: 12,
+    padding: 6,
   },
   gridProductName: {
-    fontSize: 14,
+    fontSize: 11,
     fontWeight: '600',
     color: '#000',
-    marginBottom: 4,
+    marginBottom: 2,
+    lineHeight: 14,
+  },
+  gridDescription: {
+    fontSize: 9,
+    color: '#666',
+    lineHeight: 12,
+    marginBottom: 3,
   },
   gridRatingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 6,
-    gap: 4,
+    marginBottom: 3,
+    gap: 2,
   },
   gridStars: {
-    fontSize: 12,
+    fontSize: 10,
     color: '#ffa500',
   },
   gridRatingText: {
-    fontSize: 12,
+    fontSize: 9,
     color: '#6c757d',
   },
   gridPrice: {
-    fontSize: 14,
-    color: '#6c757d',
-    marginBottom: 8,
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#000',
+    marginBottom: 4,
   },
   gridActionButtons: {
     flexDirection: 'row',
-    gap: 8,
+    gap: 4,
   },
   gridBuyButton: {
     flex: 1,
     backgroundColor: '#000',
-    borderRadius: 6,
-    paddingVertical: 8,
+    borderRadius: 4,
+    paddingVertical: 5,
     alignItems: 'center',
   },
   gridBuyButtonText: {
     color: 'white',
-    fontSize: 14,
+    fontSize: 10,
     fontWeight: '600',
   },
   gridAddButton: {
@@ -273,13 +286,13 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     borderWidth: 1,
     borderColor: '#000',
-    borderRadius: 6,
-    paddingVertical: 8,
+    borderRadius: 4,
+    paddingVertical: 5,
     alignItems: 'center',
   },
   gridAddButtonText: {
     color: '#000',
-    fontSize: 14,
+    fontSize: 10,
     fontWeight: '600',
   },
   
@@ -306,7 +319,7 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     width: '100%',
-    aspectRatio: 1, // Square aspect ratio as specified
+    aspectRatio: 1, // Square aspect ratio
     borderRadius: 6,
     overflow: 'hidden',
     marginBottom: 8,

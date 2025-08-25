@@ -9,12 +9,14 @@ import {
   Alert,
   Image,
   Modal,
+  Platform,
+  FlatList,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { CatalogItem } from '../../../src/types';
+import { useCatalog } from '../contexts/CatalogContext';
 
 const AdminDashboard: React.FC = () => {
-  const [catalog, setCatalog] = useState<CatalogItem[]>([]);
+  const { items: catalog, addItem, updateItem, deleteItem, clearItems } = useCatalog();
   const [editingItem, setEditingItem] = useState<CatalogItem | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -33,32 +35,6 @@ const AdminDashboard: React.FC = () => {
     flavorNotes: '',
   });
 
-  useEffect(() => {
-    loadCatalog();
-  }, []);
-
-  const loadCatalog = async () => {
-    try {
-      const catalogString = await AsyncStorage.getItem('bb-ci-catalog');
-      if (catalogString) {
-        const catalogData = JSON.parse(catalogString);
-        setCatalog(catalogData);
-      }
-    } catch (error) {
-      console.error('Failed to load catalog:', error);
-      Alert.alert('Error', 'Failed to load catalog');
-    }
-  };
-
-  const saveCatalog = async (newCatalog: CatalogItem[]) => {
-    try {
-      await AsyncStorage.setItem('bb-ci-catalog', JSON.stringify(newCatalog));
-      setCatalog(newCatalog);
-    } catch (error) {
-      console.error('Failed to save catalog:', error);
-      Alert.alert('Error', 'Failed to save catalog');
-    }
-  };
 
   const resetForm = () => {
     setFormData({
@@ -77,6 +53,7 @@ const AdminDashboard: React.FC = () => {
   };
 
   const openEditModal = (item?: CatalogItem) => {
+    console.log('openEditModal called with item:', item);
     if (item) {
       setEditingItem(item);
       setFormData({
@@ -91,27 +68,40 @@ const AdminDashboard: React.FC = () => {
         brewStyle: item.brewStyle || '',
         flavorNotes: item.flavorNotes?.join(', ') || '',
       });
+      console.log('Form data set for editing:', formData);
     } else {
+      console.log('Opening new product modal, resetting form');
       resetForm();
+      console.log('Form data after reset:', formData);
     }
     setShowModal(true);
   };
 
   const handleSave = async () => {
-    if (!formData.name.trim() || !formData.price || !formData.image.trim()) {
-      Alert.alert('Validation Error', 'Please fill in required fields: Name, Price, and Image URL');
+    console.log('=== SAVE BUTTON PRESSED ===');
+    console.log('handleSave called with formData:', formData);
+    
+    console.log('Validation check:');
+    console.log('Name:', formData.name.trim());
+    console.log('Price:', formData.price);
+    console.log('Image:', formData.image.trim());
+    
+    if (!formData.name.trim() || !formData.price) {
+      console.log('VALIDATION FAILED - Missing required fields');
+      Alert.alert('Validation Error', 'Please fill in required fields: Name and Price');
       return;
     }
+    
+    console.log('Validation passed, proceeding with save...');
 
     setLoading(true);
 
     try {
-      const newItem: CatalogItem = {
-        id: editingItem?.id || Date.now().toString(),
+      const itemData = {
         name: formData.name.trim(),
         desc: formData.desc.trim(),
         price: parseFloat(formData.price),
-        image: formData.image.trim(),
+        image: formData.image.trim() || 'https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=400',
         rating: parseFloat(formData.rating) || 0,
         reviews: parseInt(formData.reviews) || 0,
         category: formData.category.trim() || undefined,
@@ -122,62 +112,151 @@ const AdminDashboard: React.FC = () => {
           : undefined,
       };
 
-      let newCatalog;
+      console.log('About to save item:', itemData);
+      console.log('editingItem:', editingItem);
+
       if (editingItem) {
         // Update existing item
-        newCatalog = catalog.map(item => 
-          item.id === editingItem.id ? newItem : item
-        );
+        const updatedItem: CatalogItem = {
+          ...itemData,
+          id: editingItem.id,
+        };
+        console.log('Updating item:', updatedItem);
+        await updateItem(updatedItem);
       } else {
         // Add new item
-        newCatalog = [...catalog, newItem];
+        console.log('Adding new item:', itemData);
+        await addItem(itemData);
       }
 
-      await saveCatalog(newCatalog);
+      console.log('Item saved successfully');
       setShowModal(false);
       resetForm();
       Alert.alert('Success', editingItem ? 'Item updated successfully' : 'Item added successfully');
     } catch (error) {
-      Alert.alert('Error', 'Failed to save item');
+      console.error('Error saving item:', error);
+      Alert.alert('Error', `Failed to save item: ${error}`);
     } finally {
       setLoading(false);
     }
   };
 
   const handleDelete = async (id: string) => {
-    Alert.alert(
-      'Confirm Delete',
-      'Are you sure you want to delete this item?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            const newCatalog = catalog.filter(item => item.id !== id);
-            await saveCatalog(newCatalog);
-          },
-        },
-      ]
-    );
+    console.log('handleDelete called with id:', id);
+    
+    let confirmed = false;
+    
+    if (Platform.OS === 'web') {
+      console.log('Showing delete confirmation dialog...');
+      try {
+        confirmed = confirm(
+          'Are you sure you want to delete this product?\n\n' +
+          'This action will permanently remove the item from your catalog and cannot be undone.\n\n' +
+          'Click OK to delete, or Cancel to abort.'
+        );
+        console.log('Delete confirmation result:', confirmed);
+      } catch (error) {
+        console.error('Error with confirm dialog:', error);
+        confirmed = false;
+      }
+    } else {
+      Alert.alert(
+        'Delete Product',
+        'Are you sure you want to delete this product?\n\nThis action will permanently remove the item from your catalog and cannot be undone.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Delete', style: 'destructive', onPress: () => { confirmed = true; } }
+        ]
+      );
+    }
+    
+    if (confirmed) {
+      try {
+        console.log('Deleting item with id:', id);
+        await deleteItem(id);
+        console.log('Item deleted successfully');
+        
+        if (Platform.OS === 'web') {
+          alert('Item deleted successfully');
+        } else {
+          Alert.alert('Success', 'Item deleted successfully');
+        }
+      } catch (error) {
+        console.error('Error deleting item:', error);
+        
+        if (Platform.OS === 'web') {
+          alert('Failed to delete item');
+        } else {
+          Alert.alert('Error', 'Failed to delete item');
+        }
+      }
+    } else {
+      console.log('Delete cancelled by user');
+    }
   };
 
   const handleClear = async () => {
-    Alert.alert(
-      'Clear All Items',
-      'Are you sure you want to clear all items? This action cannot be undone.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Clear All',
-          style: 'destructive',
-          onPress: async () => {
-            await saveCatalog([]);
-            Alert.alert('Success', 'All items cleared');
-          },
-        },
-      ]
-    );
+    console.log('handleClear called');
+    
+    let confirmed = false;
+    
+    if (Platform.OS === 'web') {
+      console.log('Showing Clear All confirmation dialog...');
+      try {
+        confirmed = confirm(
+          '⚠️  WARNING: CLEAR ALL PRODUCTS  ⚠️\n\n' +
+          'This action will permanently delete ALL products from your catalog.\n\n' +
+          'What this means:\n' +
+          '• All ' + catalog.length + ' products will be removed\n' +
+          '• The catalog will be completely empty\n' +
+          '• This action cannot be undone\n' +
+          '• You will need to re-add products manually\n\n' +
+          'Click OK to proceed with clearing everything, or Cancel to abort.'
+        );
+        console.log('Clear All confirmation result:', confirmed);
+      } catch (error) {
+        console.error('Error with confirm dialog:', error);
+        confirmed = false;
+      }
+    } else {
+      Alert.alert(
+        '⚠️  Clear All Products',
+        'This action will permanently delete ALL products from your catalog.\n\n' +
+        'What this means:\n' +
+        '• All ' + catalog.length + ' products will be removed\n' +
+        '• The catalog will be completely empty\n' +
+        '• This action cannot be undone\n' +
+        '• You will need to re-add products manually',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Clear All', style: 'destructive', onPress: () => { confirmed = true; } }
+        ]
+      );
+    }
+    
+    if (confirmed) {
+      try {
+        console.log('Clearing all items...');
+        await clearItems();
+        console.log('All items cleared successfully');
+        
+        if (Platform.OS === 'web') {
+          alert('✅ Success: All products have been cleared from the catalog');
+        } else {
+          Alert.alert('Success', 'All products have been cleared from the catalog');
+        }
+      } catch (error) {
+        console.error('Error clearing items:', error);
+        
+        if (Platform.OS === 'web') {
+          alert('❌ Error: Failed to clear items');
+        } else {
+          Alert.alert('Error', 'Failed to clear items');
+        }
+      }
+    } else {
+      console.log('Clear all cancelled by user');
+    }
   };
 
   return (
@@ -202,8 +281,8 @@ const AdminDashboard: React.FC = () => {
         </Pressable>
       </View>
 
-      {/* Products Grid */}
-      <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
+      {/* Products Grid - Same as Explore Products */}
+      <View style={styles.productsSection}>
         <Text style={styles.sectionTitle}>Product Catalog ({catalog.length} items)</Text>
         
         {catalog.length === 0 ? (
@@ -211,44 +290,67 @@ const AdminDashboard: React.FC = () => {
             <Text style={styles.emptyText}>No products found. Add your first product!</Text>
           </View>
         ) : (
-          <View style={styles.gridContainer}>
-            {catalog.map((item) => (
-              <View key={item.id} style={styles.productCard}>
-                <Image 
-                  source={{ uri: item.image }}
-                  style={styles.productImage}
-                  resizeMode="cover"
-                />
-                <View style={styles.productInfo}>
-                  <Text style={styles.productName} numberOfLines={1}>
-                    {item.name}
-                  </Text>
-                  <Text style={styles.productPrice}>₹{item.price}</Text>
-                  <View style={styles.productMeta}>
-                    <Text style={styles.productRating}>
-                      ⭐ {item.rating} ({item.reviews})
-                    </Text>
+          <FlatList
+            data={catalog}
+            numColumns={4}
+            key={4} // Force re-render when columns change
+            renderItem={({ item }) => (
+              <View style={[styles.adminGridItem, { flex: 1, maxWidth: '25%' }]}>
+                <View style={styles.adminProductCard}>
+                  {/* Product Image */}
+                  <View style={styles.adminImageContainer}>
+                    <Image
+                      source={{ uri: item.image }}
+                      style={styles.adminImage}
+                      resizeMode="cover"
+                    />
                   </View>
-                  <View style={styles.productActions}>
-                    <Pressable 
-                      style={styles.editButton}
-                      onPress={() => openEditModal(item)}
-                    >
-                      <Text style={styles.editButtonText}>Edit</Text>
-                    </Pressable>
-                    <Pressable 
-                      style={styles.deleteButton}
-                      onPress={() => handleDelete(item.id)}
-                    >
-                      <Text style={styles.deleteButtonText}>Delete</Text>
-                    </Pressable>
+
+                  <View style={styles.adminContent}>
+                    <Text style={styles.adminProductName} numberOfLines={1}>
+                      {item.name}
+                    </Text>
+
+                    {/* Product Description */}
+                    <Text style={styles.adminDescription} numberOfLines={2}>
+                      {item.desc}
+                    </Text>
+
+                    {/* Rating and Reviews */}
+                    <View style={styles.adminRatingContainer}>
+                      <Text style={styles.adminStars}>⭐ {item.rating}</Text>
+                      <Text style={styles.adminRatingText}>({item.reviews})</Text>
+                    </View>
+
+                    {/* Price */}
+                    <Text style={styles.adminPrice}>₹{item.price}</Text>
+
+                    {/* Admin Action Buttons */}
+                    <View style={styles.adminActionButtons}>
+                      <Pressable
+                        style={styles.adminEditButton}
+                        onPress={() => openEditModal(item)}
+                      >
+                        <Text style={styles.adminEditButtonText}>Edit</Text>
+                      </Pressable>
+
+                      <Pressable
+                        style={styles.adminDeleteButton}
+                        onPress={() => handleDelete(item.id)}
+                      >
+                        <Text style={styles.adminDeleteButtonText}>Delete</Text>
+                      </Pressable>
+                    </View>
                   </View>
                 </View>
               </View>
-            ))}
-          </View>
+            )}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={styles.adminGridContainer}
+            showsVerticalScrollIndicator={false}
+          />
         )}
-      </ScrollView>
+      </View>
 
       {/* Edit/Add Modal */}
       <Modal
@@ -273,8 +375,12 @@ const AdminDashboard: React.FC = () => {
               <TextInput
                 style={styles.input}
                 value={formData.name}
-                onChangeText={(text) => setFormData({...formData, name: text})}
-                placeholder="Ethiopian Yirgacheffe"
+                onChangeText={(text) => {
+                  console.log('Name field changed to:', text);
+                  setFormData({...formData, name: text});
+                  console.log('FormData after name change:', {...formData, name: text});
+                }}
+                placeholder=""
               />
             </View>
 
@@ -284,7 +390,7 @@ const AdminDashboard: React.FC = () => {
                 style={[styles.input, styles.multilineInput]}
                 value={formData.desc}
                 onChangeText={(text) => setFormData({...formData, desc: text})}
-                placeholder="Bright and floral with notes of lemon and jasmine..."
+                placeholder=""
                 multiline
                 numberOfLines={3}
               />
@@ -296,8 +402,11 @@ const AdminDashboard: React.FC = () => {
                 <TextInput
                   style={styles.input}
                   value={formData.price}
-                  onChangeText={(text) => setFormData({...formData, price: text})}
-                  placeholder="899"
+                  onChangeText={(text) => {
+                    console.log('Price field changed to:', text);
+                    setFormData({...formData, price: text});
+                  }}
+                  placeholder=""
                   keyboardType="numeric"
                 />
               </View>
@@ -307,7 +416,7 @@ const AdminDashboard: React.FC = () => {
                   style={styles.input}
                   value={formData.rating}
                   onChangeText={(text) => setFormData({...formData, rating: text})}
-                  placeholder="4.5"
+                  placeholder=""
                   keyboardType="decimal-pad"
                 />
               </View>
@@ -320,7 +429,7 @@ const AdminDashboard: React.FC = () => {
                   style={styles.input}
                   value={formData.reviews}
                   onChangeText={(text) => setFormData({...formData, reviews: text})}
-                  placeholder="142"
+                  placeholder=""
                   keyboardType="numeric"
                 />
               </View>
@@ -330,18 +439,21 @@ const AdminDashboard: React.FC = () => {
                   style={styles.input}
                   value={formData.category}
                   onChangeText={(text) => setFormData({...formData, category: text})}
-                  placeholder="Single Origin"
+                  placeholder=""
                 />
               </View>
             </View>
 
             <View style={styles.formGroup}>
-              <Text style={styles.label}>Image URL *</Text>
+              <Text style={styles.label}>Image URL</Text>
               <TextInput
                 style={styles.input}
                 value={formData.image}
-                onChangeText={(text) => setFormData({...formData, image: text})}
-                placeholder="https://example.com/image.jpg"
+                onChangeText={(text) => {
+                  console.log('Image field changed to:', text);
+                  setFormData({...formData, image: text});
+                }}
+                placeholder=""
               />
             </View>
 
@@ -352,7 +464,7 @@ const AdminDashboard: React.FC = () => {
                   style={styles.input}
                   value={formData.roastProfile}
                   onChangeText={(text) => setFormData({...formData, roastProfile: text})}
-                  placeholder="light, medium, or dark"
+                  placeholder=""
                 />
               </View>
               <View style={styles.formColumn}>
@@ -361,7 +473,7 @@ const AdminDashboard: React.FC = () => {
                   style={styles.input}
                   value={formData.brewStyle}
                   onChangeText={(text) => setFormData({...formData, brewStyle: text})}
-                  placeholder="espresso, filter, french-press"
+                  placeholder=""
                 />
               </View>
             </View>
@@ -372,14 +484,17 @@ const AdminDashboard: React.FC = () => {
                 style={styles.input}
                 value={formData.flavorNotes}
                 onChangeText={(text) => setFormData({...formData, flavorNotes: text})}
-                placeholder="floral, citrus, bright"
+                placeholder=""
               />
             </View>
 
             <View style={styles.modalActions}>
               <Pressable 
                 style={styles.saveButton}
-                onPress={handleSave}
+                onPress={() => {
+                  console.log('Save button physically clicked');
+                  handleSave();
+                }}
                 disabled={loading}
               >
                 <Text style={styles.saveButtonText}>
@@ -623,6 +738,108 @@ const styles = StyleSheet.create({
     color: '#666',
     fontWeight: '500',
     textAlign: 'center',
+  },
+  
+  // Admin Grid Styles - Same as Explore Products
+  productsSection: {
+    flex: 1,
+  },
+  adminGridContainer: {
+    paddingVertical: 8,
+    paddingHorizontal: 8,
+  },
+  adminGridItem: {
+    paddingHorizontal: 4,
+    paddingVertical: 4,
+    minWidth: 0,
+  },
+  adminProductCard: {
+    backgroundColor: 'white',
+    borderRadius: 8,
+    borderWidth: 1.5,
+    borderColor: '#d1d5db',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 3,
+    overflow: 'hidden',
+  },
+  adminImageContainer: {
+    width: '100%',
+    aspectRatio: 1,
+    backgroundColor: '#f8f9fa',
+  },
+  adminImage: {
+    width: '100%',
+    height: '100%',
+  },
+  adminContent: {
+    padding: 6,
+  },
+  adminProductName: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#000',
+    marginBottom: 2,
+    lineHeight: 14,
+  },
+  adminDescription: {
+    fontSize: 9,
+    color: '#666',
+    lineHeight: 12,
+    marginBottom: 3,
+  },
+  adminRatingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 3,
+    gap: 2,
+  },
+  adminStars: {
+    fontSize: 10,
+    color: '#ffa500',
+  },
+  adminRatingText: {
+    fontSize: 9,
+    color: '#6c757d',
+  },
+  adminPrice: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#000',
+    marginBottom: 4,
+  },
+  adminActionButtons: {
+    flexDirection: 'row',
+    gap: 4,
+  },
+  adminEditButton: {
+    flex: 1,
+    backgroundColor: '#007AFF',
+    borderRadius: 4,
+    paddingVertical: 5,
+    alignItems: 'center',
+  },
+  adminEditButtonText: {
+    color: 'white',
+    fontSize: 10,
+    fontWeight: '600',
+  },
+  adminDeleteButton: {
+    flex: 1,
+    backgroundColor: '#FF3B30',
+    borderRadius: 4,
+    paddingVertical: 5,
+    alignItems: 'center',
+  },
+  adminDeleteButtonText: {
+    color: 'white',
+    fontSize: 10,
+    fontWeight: '600',
   },
 });
 

@@ -31,16 +31,16 @@ interface CatalogContextType extends CatalogState {
 
 const CatalogContext = createContext<CatalogContextType | undefined>(undefined);
 
-// Sample initial catalog data
+// Sample initial catalog data with 9 coffee products
 const initialCatalogData: CatalogItem[] = [
   {
     id: '1',
     name: 'Ethiopian Yirgacheffe',
-    desc: 'Bright and floral with notes of lemon and jasmine. Perfect for pour-over brewing.',
+    desc: 'Bright and floral with citrus notes. A delightful light roast that showcases the unique terroir of Ethiopia.',
     price: 899,
     image: 'https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=400',
     rating: 4.8,
-    reviews: 142,
+    reviews: 203,
     category: 'Single Origin',
     roastProfile: 'light',
     brewStyle: 'filter',
@@ -49,41 +49,106 @@ const initialCatalogData: CatalogItem[] = [
   {
     id: '2',
     name: 'Colombian Supremo',
-    desc: 'Rich and balanced with chocolate and caramel notes. Excellent for espresso.',
-    price: 799,
+    desc: 'Rich and balanced with chocolate and caramel notes. Perfect for espresso lovers who enjoy full-bodied flavor.',
+    price: 849,
     image: 'https://images.unsplash.com/photo-1497935586351-b67a49e012bf?w=400',
-    rating: 4.6,
-    reviews: 89,
+    rating: 4.7,
+    reviews: 156,
     category: 'Single Origin',
     roastProfile: 'medium',
     brewStyle: 'espresso',
-    flavorNotes: ['chocolate', 'caramel', 'balanced'],
+    flavorNotes: ['chocolate', 'caramel', 'nutty'],
   },
   {
     id: '3',
-    name: 'House Blend Dark Roast',
-    desc: 'Bold and smoky with deep, rich flavors. Perfect for French press or espresso.',
-    price: 699,
+    name: 'Guatemala Antigua',
+    desc: 'Smoky and spicy with a full body. Grown in volcanic soil, this coffee has a distinctive character.',
+    price: 779,
     image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400',
-    rating: 4.4,
-    reviews: 203,
-    category: 'Blend',
+    rating: 4.5,
+    reviews: 89,
+    category: 'Single Origin',
     roastProfile: 'dark',
     brewStyle: 'french-press',
-    flavorNotes: ['smoky', 'bold', 'rich'],
+    flavorNotes: ['smoky', 'spicy', 'earthy'],
   },
   {
     id: '4',
     name: 'Brazilian Santos',
-    desc: 'Smooth and nutty with low acidity. Great for cold brew and drip coffee.',
-    price: 749,
+    desc: 'Smooth and nutty with low acidity. An excellent everyday coffee with a creamy mouthfeel.',
+    price: 699,
     image: 'https://images.unsplash.com/photo-1511920170033-f8396924c348?w=400',
-    rating: 4.5,
-    reviews: 67,
+    rating: 4.4,
+    reviews: 134,
     category: 'Single Origin',
     roastProfile: 'medium',
     brewStyle: 'filter',
-    flavorNotes: ['nutty', 'smooth', 'low-acid'],
+    flavorNotes: ['nutty', 'smooth', 'creamy'],
+  },
+  {
+    id: '5',
+    name: 'Costa Rican Tarrazú',
+    desc: 'Wine-like acidity with bright fruit notes. A complex coffee from the high-altitude regions of Costa Rica.',
+    price: 929,
+    image: 'https://images.unsplash.com/photo-1545665225-b23b99e4d45e?w=400',
+    rating: 4.6,
+    reviews: 98,
+    category: 'Single Origin',
+    roastProfile: 'light',
+    brewStyle: 'filter',
+    flavorNotes: ['fruity', 'wine', 'bright'],
+  },
+  {
+    id: '6',
+    name: 'House Blend Espresso',
+    desc: 'Our signature blend with rich crema and balanced flavor. Perfect for milk-based drinks and straight shots.',
+    price: 759,
+    image: 'https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?w=400',
+    rating: 4.5,
+    reviews: 267,
+    category: 'Blend',
+    roastProfile: 'dark',
+    brewStyle: 'espresso',
+    flavorNotes: ['balanced', 'rich', 'bold'],
+  },
+  {
+    id: '7',
+    name: 'Jamaican Blue Mountain',
+    desc: 'One of the world\'s most prized coffees with mild flavor and no bitterness. Extremely smooth and refined.',
+    price: 1299,
+    image: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=400',
+    rating: 4.9,
+    reviews: 45,
+    category: 'Single Origin',
+    roastProfile: 'medium',
+    brewStyle: 'filter',
+    flavorNotes: ['mild', 'smooth', 'refined'],
+  },
+  {
+    id: '8',
+    name: 'Kenya AA',
+    desc: 'Wine-like acidity with black currant notes. A distinctive African coffee with remarkable complexity.',
+    price: 879,
+    image: 'https://images.unsplash.com/photo-1456958499877-d31c2e73e0a2?w=400',
+    rating: 4.7,
+    reviews: 112,
+    category: 'Single Origin',
+    roastProfile: 'light',
+    brewStyle: 'filter',
+    flavorNotes: ['wine', 'blackcurrant', 'complex'],
+  },
+  {
+    id: '9',
+    name: 'Sumatra Mandheling',
+    desc: 'Full-bodied with earthy, herbal notes. A unique Indonesian coffee with low acidity and syrupy body.',
+    price: 819,
+    image: 'https://images.unsplash.com/photo-1447933601403-0c6688de566e?w=400',
+    rating: 4.3,
+    reviews: 87,
+    category: 'Single Origin',
+    roastProfile: 'dark',
+    brewStyle: 'french-press',
+    flavorNotes: ['earthy', 'herbal', 'syrupy'],
   }
 ];
 
@@ -159,22 +224,35 @@ export const CatalogProvider: React.FC<CatalogProviderProps> = ({ children }) =>
   // Save to storage helper
   const saveCatalogToStorage = async (items: CatalogItem[]) => {
     try {
+      console.log('Saving catalog to storage:', items.length, 'items');
       await AsyncStorage.setItem('bb-ci-catalog', JSON.stringify(items));
+      console.log('Catalog saved to storage successfully');
     } catch (error) {
       console.error('Failed to save catalog:', error);
+      throw error;
     }
   };
 
   // Add new item
   const addItem = async (itemData: Omit<CatalogItem, 'id'>) => {
-    const newItem: CatalogItem = {
-      ...itemData,
-      id: Date.now().toString(), // Simple ID generation
-    };
-    
-    const updatedItems = [...state.items, newItem];
-    dispatch({ type: 'ADD_ITEM', payload: newItem });
-    await saveCatalogToStorage(updatedItems);
+    console.log('CatalogContext addItem called with:', itemData);
+    try {
+      const newItem: CatalogItem = {
+        ...itemData,
+        id: Date.now().toString(), // Simple ID generation
+      };
+      
+      console.log('Created new item with ID:', newItem);
+      const updatedItems = [...state.items, newItem];
+      console.log('Updated items array:', updatedItems);
+      
+      dispatch({ type: 'ADD_ITEM', payload: newItem });
+      await saveCatalogToStorage(updatedItems);
+      console.log('Item added successfully to context and storage');
+    } catch (error) {
+      console.error('Error in CatalogContext addItem:', error);
+      throw error;
+    }
   };
 
   // Update existing item
