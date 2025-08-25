@@ -203,7 +203,7 @@ const CartSection: React.FC<CartSectionProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#E2D8A5',
     padding: 16,
   },
   header: {
@@ -259,7 +259,7 @@ const styles = StyleSheet.create({
   },
   cartItem: {
     flexDirection: 'row',
-    backgroundColor: 'white',
+    backgroundColor: '#E2D8A5',
     borderRadius: 8,
     padding: 12,
     marginBottom: 12,
@@ -307,7 +307,7 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: '#E2D8A5',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -342,7 +342,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   cartSummary: {
-    backgroundColor: 'white',
+    backgroundColor: '#E2D8A5',
     borderRadius: 8,
     padding: 16,
     marginBottom: 20,

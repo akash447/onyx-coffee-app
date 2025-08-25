@@ -19,7 +19,7 @@ const AdminSection: React.FC<AdminSectionProps> = ({ deviceType, platformType })
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#E2D8A5',
   },
 });
 

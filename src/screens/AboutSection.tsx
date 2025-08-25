@@ -196,7 +196,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   heroSection: {
-    backgroundColor: 'white',
+    backgroundColor: '#E2D8A5',
     borderRadius: 12,
     overflow: 'hidden',
     marginBottom: 32,
@@ -242,7 +242,7 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   tile: {
-    backgroundColor: 'white',
+    backgroundColor: '#E2D8A5',
     borderRadius: 8,
     overflow: 'hidden',
     shadowColor: '#000',
@@ -297,7 +297,7 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   valueCard: {
-    backgroundColor: 'white',
+    backgroundColor: '#E2D8A5',
     borderRadius: 8,
     padding: 20,
     alignItems: 'center',
@@ -327,7 +327,7 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   contactSection: {
-    backgroundColor: 'white',
+    backgroundColor: '#E2D8A5',
     borderRadius: 8,
     padding: 20,
     shadowColor: '#000',

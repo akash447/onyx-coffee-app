@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { CatalogItem } from '../types';
 import { useCart } from '../contexts/CartContext';
+import { Typography, FontConfig } from '../utils/fonts';
 
 interface ProductCardProps {
   product: CatalogItem;
@@ -104,20 +105,21 @@ const ProductCard: React.FC<ProductCardProps> = ({
         </View>
 
         <View style={styles.gridContent}>
-          <Text style={styles.gridProductName} numberOfLines={1}>
-            {product.name}
-          </Text>
+          {/* Product Name and Rating Row */}
+          <View style={styles.gridNameRatingRow}>
+            <Text style={styles.gridProductName} numberOfLines={1}>
+              {product.name}
+            </Text>
+            <View style={styles.gridRatingContainer}>
+              <Text style={styles.gridStars}>{renderStars(product.rating)}</Text>
+              <Text style={styles.gridRatingText}>({product.reviews})</Text>
+            </View>
+          </View>
 
           {/* Product Description */}
-          <Text style={styles.gridDescription} numberOfLines={2}>
+          <Text style={styles.gridDescription} numberOfLines={2} ellipsizeMode="tail">
             {product.desc}
           </Text>
-
-          {/* Rating and Reviews */}
-          <View style={styles.gridRatingContainer}>
-            <Text style={styles.gridStars}>{renderStars(product.rating)}</Text>
-            <Text style={styles.gridRatingText}>({product.reviews})</Text>
-          </View>
 
           {/* Price */}
           <Text style={styles.gridPrice}>{formatPrice(product.price)}</Text>
@@ -206,7 +208,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
 const styles = StyleSheet.create({
   // New Grid Card Styles (matching reference design)
   gridCard: {
-    backgroundColor: 'white',
+    backgroundColor: '#E2D8A5',
     borderRadius: 8,
     borderWidth: 1.5,
     borderColor: '#d1d5db',
@@ -223,45 +225,62 @@ const styles = StyleSheet.create({
   gridImageContainer: {
     width: '100%',
     aspectRatio: 1, // 1:1 square aspect ratio for better grid layout
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#E2D8A5',
+    borderRadius: 8,
+    borderWidth: 12,
+    borderColor: '#e9ecef',
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
+    marginBottom: 2,
   },
   gridImage: {
     width: '100%',
     height: '100%',
+    borderRadius: 4, // Rounded corners for the image inside the frame
   },
   gridContent: {
-    padding: 6,
+    padding: 8,
+  },
+  gridNameRatingRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 4,
+    gap: 4,
   },
   gridProductName: {
-    fontSize: 11,
-    fontWeight: '600',
+    ...Typography.productTitle,
     color: '#000',
-    marginBottom: 2,
-    lineHeight: 14,
+    flex: 1,
   },
   gridDescription: {
-    fontSize: 9,
+    ...Typography.productDescription,
     color: '#666',
-    lineHeight: 12,
-    marginBottom: 3,
+    marginBottom: 4,
   },
   gridRatingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 3,
-    gap: 2,
+    gap: 1,
+    flexShrink: 0,
   },
   gridStars: {
     fontSize: 10,
     color: '#ffa500',
   },
   gridRatingText: {
-    fontSize: 9,
+    ...Typography.rating,
     color: '#6c757d',
   },
   gridPrice: {
-    fontSize: 11,
-    fontWeight: '700',
+    ...Typography.productPrice,
     color: '#000',
     marginBottom: 4,
   },
@@ -277,9 +296,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   gridBuyButtonText: {
+    ...Typography.button,
     color: 'white',
     fontSize: 10,
-    fontWeight: '600',
   },
   gridAddButton: {
     flex: 1,
@@ -291,14 +310,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   gridAddButtonText: {
+    ...Typography.button,
     color: '#000',
     fontSize: 10,
-    fontWeight: '600',
   },
   
   // Original Card Styles
   card: {
-    backgroundColor: 'white',
+    backgroundColor: '#E2D8A5',
     borderRadius: 8,
     padding: 12,
     shadowColor: '#000',
@@ -332,8 +351,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   productName: {
-    fontSize: 14,
-    fontWeight: '600',
+    ...Typography.h5,
     color: '#000',
     marginBottom: 4,
   },
@@ -348,19 +366,18 @@ const styles = StyleSheet.create({
     color: '#ffa500',
   },
   ratingText: {
-    fontSize: 12,
+    ...Typography.bodySmall,
     color: '#666',
   },
   price: {
-    fontSize: 16,
+    ...Typography.bodyLarge,
     fontWeight: '700',
     color: '#000',
     marginBottom: 8,
   },
   description: {
-    fontSize: 12,
+    ...Typography.bodySmall,
     color: '#666',
-    lineHeight: 16,
     marginBottom: 12,
   },
   actionButtons: {
@@ -381,9 +398,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#000',
   },
   primaryButtonText: {
+    ...Typography.button,
     color: 'white',
-    fontSize: 14,
-    fontWeight: '500',
   },
   secondaryButton: {
     backgroundColor: 'transparent',
@@ -391,9 +407,8 @@ const styles = StyleSheet.create({
     borderColor: '#000',
   },
   secondaryButtonText: {
+    ...Typography.button,
     color: '#000',
-    fontSize: 14,
-    fontWeight: '500',
   },
 });
 

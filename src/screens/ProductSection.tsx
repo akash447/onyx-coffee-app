@@ -340,7 +340,7 @@ const styles = StyleSheet.create({
     gap: 24,
   },
   additionalInfo: {
-    backgroundColor: 'white',
+    backgroundColor: '#E2D8A5',
     borderRadius: 8,
     padding: 16,
     shadowColor: '#000',
@@ -379,7 +379,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   noteChip: {
-    backgroundColor: '#f0f0f0',
+    backgroundColor: '#E2D8A5',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,

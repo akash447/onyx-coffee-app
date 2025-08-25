@@ -7,10 +7,13 @@ import {
   ScrollView,
   Alert,
   Image,
+  Platform,
+  Dimensions,
 } from 'react-native';
 import { ChatbotQuestion, ChatbotResponse, CatalogItem } from '../types';
 import { useCatalog } from '../contexts/CatalogContext';
 import ProductCard from './ProductCard';
+import { Typography, FontConfig } from '../utils/fonts';
 
 interface TasteChatbotProps {
   onProductRecommended?: (product: CatalogItem) => void;
@@ -118,78 +121,67 @@ const TasteChatbot: React.FC<TasteChatbotProps> = ({
   };
 
   if (isCompleted && recommendedProduct) {
-    return (
-      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-        <View style={styles.completionHeader}>
-          <Text style={styles.completionTitle}>Perfect Match Found! ✨</Text>
-          <Text style={styles.completionSubtitle}>
-            Based on your preferences, we recommend:
-          </Text>
-        </View>
+    const { width: screenWidth } = Dimensions.get('window');
+    const isDesktop = screenWidth > 768;
 
-        <View style={styles.recommendationContainer}>
-          <ProductCard
-            product={recommendedProduct}
-            variant="recommendation"
-            onPress={onProductPress}
+    return (
+      <View style={styles.container}>
+        <ScrollView showsVerticalScrollIndicator={false}>
+          <View style={styles.completionHeader}>
+            <Text style={styles.completionTitle}>Perfect Match Found! ✨</Text>
+            <Text style={styles.completionSubtitle}>
+              Based on your preferences, we recommend:
+            </Text>
+          </View>
+
+          <View style={styles.recommendationContainer}>
+            <ProductCard
+              product={recommendedProduct}
+              variant="recommendation"
+              onPress={onProductPress}
+            />
+          </View>
+
+          <View style={styles.summaryContainer}>
+            <Text style={styles.summaryTitle}>Your Preferences:</Text>
+            {responses.brewStyle && (
+              <Text style={styles.summaryItem}>☕ Brewing: {responses.brewStyle}</Text>
+            )}
+            {responses.roastProfile && (
+              <Text style={styles.summaryItem}>🔥 Roast: {responses.roastProfile}</Text>
+            )}
+            {responses.flavorDirection && (
+              <Text style={styles.summaryItem}>👅 Flavor: {responses.flavorDirection}</Text>
+            )}
+          </View>
+
+          <Pressable style={styles.restartButton} onPress={handleRestart}>
+            <Text style={styles.restartButtonText}>Try Different Preferences</Text>
+          </Pressable>
+        </ScrollView>
+
+        {/* Single Pink Panther GIF in right corner */}
+        <View style={[styles.pinkPantherContainer, isDesktop ? styles.desktopGif : styles.mobileGif]}>
+          <Image
+            source={{ 
+              uri: 'https://media.giphy.com/media/3o7TKqnN349PBUtGFO/giphy.gif' 
+            }}
+            style={[styles.pinkPantherGif, isDesktop ? styles.desktopGifSize : styles.mobileGifSize]}
+            resizeMode="contain"
           />
         </View>
-
-        <View style={styles.summaryContainer}>
-          <Text style={styles.summaryTitle}>Your Preferences:</Text>
-          {responses.brewStyle && (
-            <Text style={styles.summaryItem}>☕ Brewing: {responses.brewStyle}</Text>
-          )}
-          {responses.roastProfile && (
-            <Text style={styles.summaryItem}>🔥 Roast: {responses.roastProfile}</Text>
-          )}
-          {responses.flavorDirection && (
-            <Text style={styles.summaryItem}>👅 Flavor: {responses.flavorDirection}</Text>
-          )}
-        </View>
-
-        <Pressable style={styles.restartButton} onPress={handleRestart}>
-          <Text style={styles.restartButtonText}>Try Different Preferences</Text>
-        </Pressable>
-      </ScrollView>
+      </View>
     );
   }
 
   const currentQuestion = questions[currentQuestionIndex];
 
+  const { width: screenWidth } = Dimensions.get('window');
+  const isDesktop = screenWidth > 768;
+
   return (
     <View style={styles.container}>
-      {/* Animated Background GIF */}
-      <View style={styles.backgroundContainer}>
-        <Image
-          source={{ 
-            uri: 'https://media.giphy.com/media/l0HlBO7eyXzSZkJri/giphy.gif' 
-          }}
-          style={styles.backgroundGif}
-          resizeMode="cover"
-        />
-        <View style={styles.overlayGradient} />
-      </View>
-
-      {/* Coffee Animation GIF */}
-      <View style={styles.sideAnimationContainer}>
-        <Image
-          source={{ 
-            uri: 'https://media.giphy.com/media/5nkXJZbsF9xL8O8M28/giphy.gif' 
-          }}
-          style={styles.sideAnimation}
-          resizeMode="contain"
-        />
-      </View>
-
       <View style={styles.chatbotCard}>
-        <View style={styles.welcomeHeader}>
-          <Text style={styles.welcomeTitle}>☕ Coffee Taste Assistant</Text>
-          <Text style={styles.welcomeSubtitle}>
-            Let's find your perfect brew! Answer a few questions and discover coffee that matches your taste.
-          </Text>
-        </View>
-
         <Text style={styles.questionText}>{currentQuestion.question}</Text>
         
         <View style={styles.optionsContainer}>
@@ -229,21 +221,14 @@ const TasteChatbot: React.FC<TasteChatbotProps> = ({
         </Pressable>
       )}
 
-      {/* Decorative Coffee Elements */}
-      <View style={styles.decorativeElements}>
+      {/* Single Pink Panther GIF in right corner */}
+      <View style={[styles.pinkPantherContainer, isDesktop ? styles.desktopGif : styles.mobileGif]}>
         <Image
           source={{ 
-            uri: 'https://media.giphy.com/media/xT9IgG50Fb7Mi0prBC/giphy.gif' 
+            uri: 'https://media.giphy.com/media/3o7TKqnN349PBUtGFO/giphy.gif' 
           }}
-          style={styles.decorativeGif1}
+          style={[styles.pinkPantherGif, isDesktop ? styles.desktopGifSize : styles.mobileGifSize]}
           resizeMode="contain"
-        />
-        <Image
-          source={{ 
-            uri: 'https://media.giphy.com/media/l0HlBO7eyXzSZkJri/giphy.gif' 
-          }}
-          style={styles.decorativeGif2}
-          resizeMode="cover"
         />
       </View>
     </View>
@@ -258,108 +243,47 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     width: '100%',
     position: 'relative',
-    minHeight: 600,
-  },
-  backgroundContainer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: -1,
-  },
-  backgroundGif: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    opacity: 0.15,
-  },
-  overlayGradient: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
-  },
-  sideAnimationContainer: {
-    position: 'absolute',
-    top: 20,
-    right: -120,
-    zIndex: 1,
-  },
-  sideAnimation: {
-    width: 150,
-    height: 150,
-    opacity: 0.7,
-  },
-  decorativeElements: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: -1,
-  },
-  decorativeGif1: {
-    position: 'absolute',
-    bottom: 50,
-    left: -50,
-    width: 80,
-    height: 80,
-    opacity: 0.6,
-  },
-  decorativeGif2: {
-    position: 'absolute',
-    top: 150,
-    right: -80,
-    width: 60,
-    height: 60,
-    opacity: 0.4,
   },
   chatbotCard: {
-    padding: 20,
-    backgroundColor: 'rgba(248, 249, 250, 0.95)',
-    borderRadius: 16,
+    padding: 16,
+    backgroundColor: '#E2D8A5',
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: '#e9ecef',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 4,
+      height: 1,
     },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 8,
-    backdropFilter: 'blur(10px)',
-    zIndex: 2,
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
   },
-  welcomeHeader: {
-    alignItems: 'center',
-    marginBottom: 20,
-    padding: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#e9ecef',
+  pinkPantherContainer: {
+    position: 'absolute',
+    zIndex: 10,
   },
-  welcomeTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#333',
-    marginBottom: 8,
-    textAlign: 'center',
+  desktopGif: {
+    bottom: 20,
+    right: -200, // Position to the right of the chatbot
   },
-  welcomeSubtitle: {
-    fontSize: 14,
-    color: '#666',
-    textAlign: 'center',
-    lineHeight: 20,
+  mobileGif: {
+    bottom: 20,
+    right: 10, // Position in the right corner for mobile
+  },
+  pinkPantherGif: {
+    backgroundColor: 'transparent',
+  },
+  desktopGifSize: {
+    width: 189, // 5cm ≈ 189px (at 96 DPI)
+    height: 189,
+  },
+  mobileGifSize: {
+    width: 76, // 2cm ≈ 76px (at 96 DPI)
+    height: 76,
   },
   progressContainer: {
-    marginTop: 20,
+    marginTop: 16,
     alignItems: 'center',
   },
   progressText: {
@@ -380,11 +304,9 @@ const styles = StyleSheet.create({
     borderRadius: 2,
   },
   questionText: {
-    fontSize: 14,
-    fontWeight: '600',
+    ...Typography.h5,
     color: '#000',
     marginBottom: 12,
-    lineHeight: 20,
   },
   optionsContainer: {
     flexDirection: 'row',
@@ -392,7 +314,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   optionButton: {
-    backgroundColor: 'white',
+    backgroundColor: '#E2D8A5',
     borderWidth: 2,
     borderColor: '#6f42c1',
     borderRadius: 25,
@@ -410,8 +332,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   optionText: {
-    fontSize: 14,
-    fontWeight: '600',
+    ...Typography.button,
     color: '#6f42c1',
   },
   backButton: {
@@ -421,7 +342,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   backButtonText: {
-    fontSize: 14,
+    ...Typography.body,
     color: '#666',
   },
   completionHeader: {
@@ -429,14 +350,13 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   completionTitle: {
-    fontSize: 20,
-    fontWeight: '700',
+    ...Typography.h2,
     color: '#000',
     marginBottom: 8,
     textAlign: 'center',
   },
   completionSubtitle: {
-    fontSize: 14,
+    ...Typography.body,
     color: '#666',
     textAlign: 'center',
   },
@@ -446,19 +366,18 @@ const styles = StyleSheet.create({
     maxWidth: 300,
   },
   summaryContainer: {
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#E2D8A5',
     borderRadius: 8,
     padding: 16,
     marginBottom: 24,
   },
   summaryTitle: {
-    fontSize: 16,
-    fontWeight: '600',
+    ...Typography.h4,
     color: '#000',
     marginBottom: 12,
   },
   summaryItem: {
-    fontSize: 14,
+    ...Typography.body,
     color: '#333',
     marginBottom: 4,
   },
@@ -472,8 +391,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   restartButtonText: {
-    fontSize: 14,
-    fontWeight: '500',
+    ...Typography.button,
     color: '#000',
   },
 });

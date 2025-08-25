@@ -437,7 +437,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalContent: {
-    backgroundColor: 'white',
+    backgroundColor: '#E2D8A5',
     borderRadius: 12,
     padding: 24,
     width: '80%',
@@ -465,7 +465,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   countryCode: {
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#E2D8A5',
     paddingHorizontal: 12,
     paddingVertical: 12,
     fontSize: 14,
@@ -506,7 +506,7 @@ const styles = StyleSheet.create({
     marginVertical: 16,
   },
   demoButton: {
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#E2D8A5',
     borderWidth: 1,
     borderColor: '#dee2e6',
     borderRadius: 8,
@@ -566,7 +566,7 @@ const styles = StyleSheet.create({
   profileMenu: {
     position: 'absolute',
     right: 16,
-    backgroundColor: 'white',
+    backgroundColor: '#E2D8A5',
     borderRadius: 8,
     paddingVertical: 8,
     minWidth: 120,

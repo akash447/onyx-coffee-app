@@ -18,6 +18,7 @@ import { CartProvider } from './src/contexts/CartContext';
 import Banner from './src/components/Banner';
 import SideRail from './src/components/SideRail';
 import ProductSection from './src/screens/ProductSection';
+import FontLoader from './src/components/FontLoader';
 import CommunitySection from './src/screens/CommunitySection';
 import AboutSection from './src/screens/AboutSection';
 import AdminSection from './src/screens/AdminSection';
@@ -160,6 +161,7 @@ export default function App() {
         <AuthProvider>
           <CatalogProvider>
             <CartProvider>
+              <FontLoader />
               <SafeAreaView style={styles.container}>
                 <StatusBar 
                   barStyle="dark-content" 
@@ -203,7 +205,7 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#E2D8A5',
   },
   mainContent: {
     flex: 1,

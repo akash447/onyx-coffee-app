@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { CatalogItem } from '../../../src/types';
 import { useCatalog } from '../contexts/CatalogContext';
+import { Typography, FontConfig } from '../utils/fonts';
 
 const AdminDashboard: React.FC = () => {
   const { items: catalog, addItem, updateItem, deleteItem, clearItems } = useCatalog();
@@ -518,17 +519,16 @@ const AdminDashboard: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#E2D8A5',
     padding: 16,
   },
   title: {
-    fontSize: 24,
-    fontWeight: '700',
+    ...Typography.h1,
     color: '#000',
     marginBottom: 4,
   },
   subtitle: {
-    fontSize: 14,
+    ...Typography.body,
     color: '#666',
     marginBottom: 24,
   },
@@ -584,7 +584,7 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   productCard: {
-    backgroundColor: 'white',
+    backgroundColor: '#E2D8A5',
     borderRadius: 8,
     padding: 12,
     width: '48%',
@@ -654,7 +654,7 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: '#E2D8A5',
   },
   modalHeader: {
     flexDirection: 'row',
@@ -702,7 +702,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 12,
     fontSize: 14,
-    backgroundColor: 'white',
+    backgroundColor: '#E2D8A5',
   },
   multilineInput: {
     height: 80,
@@ -754,7 +754,7 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   adminProductCard: {
-    backgroundColor: 'white',
+    backgroundColor: '#E2D8A5',
     borderRadius: 8,
     borderWidth: 1.5,
     borderColor: '#d1d5db',
@@ -771,26 +771,37 @@ const styles = StyleSheet.create({
   adminImageContainer: {
     width: '100%',
     aspectRatio: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#E2D8A5',
+    borderRadius: 8,
+    borderWidth: 12,
+    borderColor: '#e9ecef',
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
+    marginBottom: 2,
   },
   adminImage: {
     width: '100%',
     height: '100%',
+    borderRadius: 4, // Rounded corners for the image inside the frame
   },
   adminContent: {
     padding: 6,
   },
   adminProductName: {
-    fontSize: 11,
-    fontWeight: '600',
+    ...Typography.productTitle,
     color: '#000',
     marginBottom: 2,
-    lineHeight: 14,
   },
   adminDescription: {
-    fontSize: 9,
+    ...Typography.productDescription,
     color: '#666',
-    lineHeight: 12,
     marginBottom: 3,
   },
   adminRatingContainer: {

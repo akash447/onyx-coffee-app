@@ -193,7 +193,7 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   tile: {
-    backgroundColor: 'white',
+    backgroundColor: '#E2D8A5',
     borderRadius: 8,
     overflow: 'hidden',
     shadowColor: '#000',
@@ -245,7 +245,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   featuredCard: {
-    backgroundColor: 'white',
+    backgroundColor: '#E2D8A5',
     borderRadius: 8,
     padding: 20,
     shadowColor: '#000',
@@ -292,7 +292,7 @@ const styles = StyleSheet.create({
   },
   statCard: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: '#E2D8A5',
     borderRadius: 8,
     padding: 16,
     alignItems: 'center',
