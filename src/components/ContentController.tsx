@@ -29,26 +29,105 @@ const contentSections: ContentSection[] = [
 const ContentController: React.FC = () => {
   const [activeSection, setActiveSection] = useState<string>('homepage');
   const { contentData, updateContent, saveContent } = useContent();
+  const [pendingChanges, setPendingChanges] = useState<{[key: string]: string}>({});
 
-  const handleContentUpdate = (section: string, field: string, value: string) => {
-    updateContent(section as keyof typeof contentData, field, value);
+  const handleFieldChange = (section: string, field: string, value: string) => {
+    const key = `${section}.${field}`;
+    setPendingChanges(prev => ({
+      ...prev,
+      [key]: value,
+    }));
+  };
+
+  const applyFieldChange = (section: string, field: string) => {
+    const key = `${section}.${field}`;
+    const value = pendingChanges[key];
+    if (value !== undefined) {
+      updateContent(section as keyof typeof contentData, field, value);
+      setPendingChanges(prev => {
+        const updated = { ...prev };
+        delete updated[key];
+        return updated;
+      });
+      // Show success feedback
+      if (Platform.OS === 'web') {
+        // Create a temporary notification
+        const notification = document.createElement('div');
+        notification.innerText = '✅ Applied';
+        notification.style.cssText = 'position:fixed;top:20px;right:20px;background:#000;color:#fff;padding:8px 12px;border-radius:4px;font-size:12px;z-index:1000;';
+        document.body.appendChild(notification);
+        setTimeout(() => document.body.removeChild(notification), 1500);
+      }
+    }
+  };
+
+  const getFieldValue = (section: string, field: string) => {
+    const key = `${section}.${field}`;
+    return pendingChanges[key] !== undefined 
+      ? pendingChanges[key] 
+      : (contentData as any)[section]?.[field] || '';
+  };
+
+  const hasUnappliedChanges = (section: string, field: string) => {
+    const key = `${section}.${field}`;
+    return pendingChanges[key] !== undefined;
   };
 
   const handleSave = () => {
     if (Platform.OS === 'web') {
-      if (confirm('Save content changes? This will update the live content on your website.')) {
+      if (confirm('Save all content changes? This will update the live content on your website.')) {
         saveContent();
       }
     } else {
       Alert.alert(
         'Save Changes',
-        'Save content changes? This will update the live content on your website.',
+        'Save all content changes? This will update the live content on your website.',
         [
           { text: 'Cancel', style: 'cancel' },
           { text: 'Save', onPress: saveContent }
         ]
       );
     }
+  };
+
+  const renderInputField = (section: string, field: string, label: string, placeholder: string, multiline = false, numberOfLines = 1) => {
+    const key = `${section}.${field}`;
+    const hasChanges = hasUnappliedChanges(section, field);
+    
+    return (
+      <View style={styles.inputGroup}>
+        <Text style={styles.inputLabel}>{label}</Text>
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={[
+              styles.textInput,
+              multiline && styles.multilineInput,
+              hasChanges && styles.modifiedInput
+            ]}
+            value={getFieldValue(section, field)}
+            onChangeText={(text) => handleFieldChange(section, field, text)}
+            placeholder={placeholder}
+            multiline={multiline}
+            numberOfLines={numberOfLines}
+          />
+          <Pressable
+            style={[
+              styles.applyButton,
+              hasChanges ? styles.applyButtonActive : styles.applyButtonInactive
+            ]}
+            onPress={() => applyFieldChange(section, field)}
+            disabled={!hasChanges}
+          >
+            <Text style={[
+              styles.applyButtonText,
+              hasChanges ? styles.applyButtonTextActive : styles.applyButtonTextInactive
+            ]}>
+              Apply
+            </Text>
+          </Pressable>
+        </View>
+      </View>
+    );
   };
 
   const renderHomepageEditor = () => (
@@ -59,35 +138,9 @@ const ContentController: React.FC = () => {
       <View style={styles.contentGroup}>
         <Text style={styles.groupTitle}>🎯 Hero Banner</Text>
         
-        <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>Banner Title</Text>
-          <TextInput
-            style={styles.textInput}
-            value={contentData.homepage.bannerTitle}
-            onChangeText={(text) => handleContentUpdate('homepage', 'bannerTitle', text)}
-            placeholder="Main banner title"
-          />
-        </View>
-
-        <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>Banner Subtitle</Text>
-          <TextInput
-            style={styles.textInput}
-            value={contentData.homepage.bannerSubtitle}
-            onChangeText={(text) => handleContentUpdate('homepage', 'bannerSubtitle', text)}
-            placeholder="Banner subtitle"
-          />
-        </View>
-
-        <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>Banner Image URL</Text>
-          <TextInput
-            style={styles.textInput}
-            value={contentData.homepage.bannerImage}
-            onChangeText={(text) => handleContentUpdate('homepage', 'bannerImage', text)}
-            placeholder="https://example.com/image.jpg"
-          />
-        </View>
+        {renderInputField('homepage', 'bannerTitle', 'Banner Title', 'Main banner title')}
+        {renderInputField('homepage', 'bannerSubtitle', 'Banner Subtitle', 'Banner subtitle')}
+        {renderInputField('homepage', 'bannerImage', 'Banner Image URL', 'https://example.com/image.jpg')}
 
         {/* Image Preview */}
         {contentData.homepage.bannerImage && (
@@ -106,27 +159,8 @@ const ContentController: React.FC = () => {
       <View style={styles.contentGroup}>
         <Text style={styles.groupTitle}>👋 Welcome Section</Text>
         
-        <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>Hero Text</Text>
-          <TextInput
-            style={styles.textInput}
-            value={contentData.homepage.heroText}
-            onChangeText={(text) => handleContentUpdate('homepage', 'heroText', text)}
-            placeholder="Main hero text"
-          />
-        </View>
-
-        <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>Welcome Message</Text>
-          <TextInput
-            style={[styles.textInput, styles.multilineInput]}
-            value={contentData.homepage.welcomeMessage}
-            onChangeText={(text) => handleContentUpdate('homepage', 'welcomeMessage', text)}
-            placeholder="Welcome message for visitors"
-            multiline
-            numberOfLines={3}
-          />
-        </View>
+        {renderInputField('homepage', 'heroText', 'Hero Text', 'Main hero text')}
+        {renderInputField('homepage', 'welcomeMessage', 'Welcome Message', 'Welcome message for visitors', true, 3)}
       </View>
     </View>
   );
@@ -138,61 +172,16 @@ const ContentController: React.FC = () => {
       <View style={styles.contentGroup}>
         <Text style={styles.groupTitle}>☕ Product Section</Text>
         
-        <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>Main Section Title</Text>
-          <TextInput
-            style={styles.textInput}
-            value={contentData.product.sectionTitle}
-            onChangeText={(text) => handleContentUpdate('product', 'sectionTitle', text)}
-            placeholder="Coffee Products"
-          />
-        </View>
-
-        <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>Explore Tab Title</Text>
-          <TextInput
-            style={styles.textInput}
-            value={contentData.product.exploreTitle}
-            onChangeText={(text) => handleContentUpdate('product', 'exploreTitle', text)}
-            placeholder="Explore other products"
-          />
-        </View>
-
-        <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>Personalized Tab Title</Text>
-          <TextInput
-            style={styles.textInput}
-            value={contentData.product.personalizedTitle}
-            onChangeText={(text) => handleContentUpdate('product', 'personalizedTitle', text)}
-            placeholder="Product for you"
-          />
-        </View>
+        {renderInputField('product', 'sectionTitle', 'Main Section Title', 'Coffee Products')}
+        {renderInputField('product', 'exploreTitle', 'Explore Tab Title', 'Explore other products')}
+        {renderInputField('product', 'personalizedTitle', 'Personalized Tab Title', 'Product for you')}
       </View>
 
       <View style={styles.contentGroup}>
         <Text style={styles.groupTitle}>🤖 Chatbot Content</Text>
         
-        <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>Chatbot Welcome Title</Text>
-          <TextInput
-            style={styles.textInput}
-            value={contentData.product.chatbotWelcome}
-            onChangeText={(text) => handleContentUpdate('product', 'chatbotWelcome', text)}
-            placeholder="Coffee Taste Assistant"
-          />
-        </View>
-
-        <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>Chatbot Subtitle</Text>
-          <TextInput
-            style={[styles.textInput, styles.multilineInput]}
-            value={contentData.product.chatbotSubtitle}
-            onChangeText={(text) => handleContentUpdate('product', 'chatbotSubtitle', text)}
-            placeholder="Description for the chatbot functionality"
-            multiline
-            numberOfLines={3}
-          />
-        </View>
+        {renderInputField('product', 'chatbotWelcome', 'Chatbot Welcome Title', 'Coffee Taste Assistant')}
+        {renderInputField('product', 'chatbotSubtitle', 'Chatbot Subtitle', 'Description for the chatbot functionality', true, 3)}
       </View>
     </View>
   );
@@ -204,97 +193,24 @@ const ContentController: React.FC = () => {
       <View style={styles.contentGroup}>
         <Text style={styles.groupTitle}>👥 Community Header</Text>
         
-        <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>Section Title</Text>
-          <TextInput
-            style={styles.textInput}
-            value={contentData.community.sectionTitle}
-            onChangeText={(text) => handleContentUpdate('community', 'sectionTitle', text)}
-            placeholder="Coffee Community"
-          />
-        </View>
-
-        <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>Welcome Text</Text>
-          <TextInput
-            style={[styles.textInput, styles.multilineInput]}
-            value={contentData.community.welcomeText}
-            onChangeText={(text) => handleContentUpdate('community', 'welcomeText', text)}
-            placeholder="Join our community message"
-            multiline
-            numberOfLines={2}
-          />
-        </View>
+        {renderInputField('community', 'sectionTitle', 'Section Title', 'Coffee Community')}
+        {renderInputField('community', 'welcomeText', 'Welcome Text', 'Join our community message', true, 2)}
       </View>
 
       <View style={styles.contentGroup}>
         <Text style={styles.groupTitle}>⭐ Featured Content</Text>
         
-        <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>Featured Article Title</Text>
-          <TextInput
-            style={styles.textInput}
-            value={contentData.community.featuredTitle || 'Featured This Week'}
-            onChangeText={(text) => handleContentUpdate('community', 'featuredTitle', text)}
-            placeholder="Featured This Week"
-          />
-        </View>
-
-        <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>Featured Content Title</Text>
-          <TextInput
-            style={styles.textInput}
-            value={contentData.community.featuredContent}
-            onChangeText={(text) => handleContentUpdate('community', 'featuredContent', text)}
-            placeholder="Featured community content"
-          />
-        </View>
-
-        <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>Featured Content Description</Text>
-          <TextInput
-            style={[styles.textInput, styles.multilineInput]}
-            value={contentData.community.featuredDescription || ''}
-            onChangeText={(text) => handleContentUpdate('community', 'featuredDescription', text)}
-            placeholder="Description of the featured content"
-            multiline
-            numberOfLines={3}
-          />
-        </View>
+        {renderInputField('community', 'featuredTitle', 'Featured Article Title', 'Featured This Week')}
+        {renderInputField('community', 'featuredContent', 'Featured Content Title', 'Featured community content')}
+        {renderInputField('community', 'featuredDescription', 'Featured Content Description', 'Description of the featured content', true, 3)}
       </View>
 
       <View style={styles.contentGroup}>
         <Text style={styles.groupTitle}>📊 Community Stats</Text>
         
-        <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>Coffee Lovers Count</Text>
-          <TextInput
-            style={styles.textInput}
-            value={contentData.community.membersCount || '1,250+'}
-            onChangeText={(text) => handleContentUpdate('community', 'membersCount', text)}
-            placeholder="1,250+"
-          />
-        </View>
-
-        <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>Brew Guides Count</Text>
-          <TextInput
-            style={styles.textInput}
-            value={contentData.community.guidesCount || '500+'}
-            onChangeText={(text) => handleContentUpdate('community', 'guidesCount', text)}
-            placeholder="500+"
-          />
-        </View>
-
-        <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>Reviews Count</Text>
-          <TextInput
-            style={styles.textInput}
-            value={contentData.community.reviewsCount || '2,100+'}
-            onChangeText={(text) => handleContentUpdate('community', 'reviewsCount', text)}
-            placeholder="2,100+"
-          />
-        </View>
+        {renderInputField('community', 'membersCount', 'Coffee Lovers Count', '1,250+')}
+        {renderInputField('community', 'guidesCount', 'Brew Guides Count', '500+')}
+        {renderInputField('community', 'reviewsCount', 'Reviews Count', '2,100+')}
       </View>
     </View>
   );
@@ -306,87 +222,18 @@ const ContentController: React.FC = () => {
       <View style={styles.contentGroup}>
         <Text style={styles.groupTitle}>ℹ️ Company Information</Text>
         
-        <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>Company Name</Text>
-          <TextInput
-            style={styles.textInput}
-            value={contentData.about.companyName}
-            onChangeText={(text) => handleContentUpdate('about', 'companyName', text)}
-            placeholder="Company name"
-          />
-        </View>
-
-        <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>Tagline</Text>
-          <TextInput
-            style={styles.textInput}
-            value={contentData.about.tagline}
-            onChangeText={(text) => handleContentUpdate('about', 'tagline', text)}
-            placeholder="Company tagline"
-          />
-        </View>
-
-        <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>Company Description</Text>
-          <TextInput
-            style={[styles.textInput, styles.multilineInput]}
-            value={contentData.about.description}
-            onChangeText={(text) => handleContentUpdate('about', 'description', text)}
-            placeholder="Company description"
-            multiline
-            numberOfLines={4}
-          />
-        </View>
-
-        <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>Mission Statement</Text>
-          <TextInput
-            style={[styles.textInput, styles.multilineInput]}
-            value={contentData.about.missionStatement}
-            onChangeText={(text) => handleContentUpdate('about', 'missionStatement', text)}
-            placeholder="Mission statement"
-            multiline
-            numberOfLines={3}
-          />
-        </View>
+        {renderInputField('about', 'companyName', 'Company Name', 'Company name')}
+        {renderInputField('about', 'tagline', 'Tagline', 'Company tagline')}
+        {renderInputField('about', 'description', 'Company Description', 'Company description', true, 4)}
+        {renderInputField('about', 'missionStatement', 'Mission Statement', 'Mission statement', true, 3)}
       </View>
 
       <View style={styles.contentGroup}>
         <Text style={styles.groupTitle}>📍 Contact & Location</Text>
         
-        <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>Address</Text>
-          <TextInput
-            style={[styles.textInput, styles.multilineInput]}
-            value={contentData.about.address || ''}
-            onChangeText={(text) => handleContentUpdate('about', 'address', text)}
-            placeholder="Company address"
-            multiline
-            numberOfLines={2}
-          />
-        </View>
-
-        <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>Contact Email</Text>
-          <TextInput
-            style={styles.textInput}
-            value={contentData.about.email || ''}
-            onChangeText={(text) => handleContentUpdate('about', 'email', text)}
-            placeholder="contact@company.com"
-            keyboardType="email-address"
-          />
-        </View>
-
-        <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>Phone Number</Text>
-          <TextInput
-            style={styles.textInput}
-            value={contentData.about.phone || ''}
-            onChangeText={(text) => handleContentUpdate('about', 'phone', text)}
-            placeholder="+91 XXXXX XXXXX"
-            keyboardType="phone-pad"
-          />
-        </View>
+        {renderInputField('about', 'address', 'Address', 'Company address', true, 2)}
+        {renderInputField('about', 'email', 'Contact Email', 'contact@company.com')}
+        {renderInputField('about', 'phone', 'Phone Number', '+91 XXXXX XXXXX')}
       </View>
     </View>
   );
@@ -404,6 +251,32 @@ const ContentController: React.FC = () => {
       default:
         return renderHomepageEditor();
     }
+  };
+
+  const renderPreview = () => {
+    // Simple preview based on active section
+    const sectionData = (contentData as any)[activeSection] || {};
+    
+    return (
+      <View style={styles.previewContainer}>
+        <Text style={styles.previewTitle}>Live Preview - {contentSections.find(s => s.id === activeSection)?.title}</Text>
+        <ScrollView style={styles.previewContent} showsVerticalScrollIndicator={false}>
+          {Object.entries(sectionData).map(([key, value]) => (
+            <View key={key} style={styles.previewItem}>
+              <Text style={styles.previewFieldName}>{key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}:</Text>
+              <Text style={styles.previewFieldValue}>{String(value)}</Text>
+            </View>
+          ))}
+        </ScrollView>
+        
+        {/* Save All Changes Button */}
+        <View style={styles.saveSection}>
+          <Pressable style={styles.saveButton} onPress={handleSave}>
+            <Text style={styles.saveButtonText}>💾 Save All Changes</Text>
+          </Pressable>
+        </View>
+      </View>
+    );
   };
 
   return (
@@ -438,16 +311,15 @@ const ContentController: React.FC = () => {
         ))}
       </ScrollView>
 
-      {/* Content Editor */}
-      <ScrollView style={styles.editorContainer} showsVerticalScrollIndicator={false}>
-        {renderCurrentEditor()}
-      </ScrollView>
+      {/* Split Screen: Editor + Preview */}
+      <View style={styles.splitContainer}>
+        {/* Editor Section */}
+        <ScrollView style={styles.editorContainer} showsVerticalScrollIndicator={false}>
+          {renderCurrentEditor()}
+        </ScrollView>
 
-      {/* Save Button */}
-      <View style={styles.saveSection}>
-        <Pressable style={styles.saveButton} onPress={handleSave}>
-          <Text style={styles.saveButtonText}>💾 Save All Changes</Text>
-        </Pressable>
+        {/* Preview Section */}
+        {renderPreview()}
       </View>
     </View>
   );
@@ -512,6 +384,11 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '600',
   },
+  splitContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    gap: 16,
+  },
   editorContainer: {
     flex: 1,
   },
@@ -552,7 +429,13 @@ const styles = StyleSheet.create({
     color: '#000',
     marginBottom: 8,
   },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+  },
   textInput: {
+    flex: 1,
     backgroundColor: '#E2D8A5',
     borderWidth: 2,
     borderColor: '#d1d5db',
@@ -563,9 +446,37 @@ const styles = StyleSheet.create({
     ...FontConfig.regular,
     color: '#000',
   },
+  modifiedInput: {
+    borderColor: '#f39c12',
+    backgroundColor: '#fff9e6',
+  },
   multilineInput: {
     minHeight: 80,
     textAlignVertical: 'top',
+  },
+  applyButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 6,
+    minWidth: 70,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  applyButtonActive: {
+    backgroundColor: '#27ae60',
+  },
+  applyButtonInactive: {
+    backgroundColor: '#95a5a6',
+  },
+  applyButtonText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  applyButtonTextActive: {
+    color: '#fff',
+  },
+  applyButtonTextInactive: {
+    color: '#ccc',
   },
   imagePreview: {
     marginTop: 12,
@@ -582,8 +493,55 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#d1d5db',
   },
+  previewContainer: {
+    flex: 1,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  previewTitle: {
+    ...Typography.h3,
+    color: '#000',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e9ecef',
+    backgroundColor: '#f8f9fa',
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+  },
+  previewContent: {
+    flex: 1,
+    padding: 16,
+  },
+  previewItem: {
+    marginBottom: 16,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e9ecef',
+  },
+  previewFieldName: {
+    ...Typography.label,
+    color: '#666',
+    marginBottom: 4,
+  },
+  previewFieldValue: {
+    ...Typography.body,
+    color: '#000',
+    lineHeight: 20,
+  },
   saveSection: {
-    paddingTop: 20,
+    padding: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#e9ecef',
     alignItems: 'center',
   },
   saveButton: {

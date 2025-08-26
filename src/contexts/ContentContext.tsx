@@ -94,13 +94,18 @@ export const ContentProvider: React.FC<ContentProviderProps> = ({ children }) =>
   });
 
   const updateContent = (section: keyof ContentData, field: string, value: string) => {
-    setContentData(prev => ({
-      ...prev,
-      [section]: {
-        ...prev[section],
-        [field]: value,
-      },
-    }));
+    console.log('Updating content:', section, field, value);
+    setContentData(prev => {
+      const updated = {
+        ...prev,
+        [section]: {
+          ...prev[section],
+          [field]: value,
+        },
+      };
+      console.log('Updated content data:', updated);
+      return updated;
+    });
   };
 
   const saveContent = () => {
