@@ -1,3 +1,21 @@
+export interface Comment {
+  id: string;
+  userId: string;
+  userName: string;
+  userAvatar?: string;
+  content: string;
+  timestamp: Date;
+  likes: number;
+  likedBy: string[];
+}
+
+export interface ReportReason {
+  id: string;
+  reason: string;
+  reportedBy: string;
+  timestamp: Date;
+}
+
 export interface UserStory {
   id: string;
   userId: string;
@@ -12,6 +30,12 @@ export interface UserStory {
   images?: string[]; // Optional images
   likes: number;
   likedBy: string[]; // User IDs who liked this story
+  comments: Comment[];
+  commentCount: number;
+  reshares: number;
+  resharedBy: string[]; // User IDs who reshared this story
+  reports: ReportReason[];
+  isReported: boolean;
   isLive: boolean; // For live posts
   tags?: string[]; // Optional tags like #coffee, #brewing, etc.
 }

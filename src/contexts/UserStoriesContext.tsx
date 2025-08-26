@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { UserStory, CreateUserStoryRequest, UserStoryFilters } from '../types/UserStory';
+import { UserStory, CreateUserStoryRequest, UserStoryFilters, Comment, ReportReason } from '../types/UserStory';
 import { useAuth } from './AuthContext';
 import { useCatalog } from './CatalogContext';
 
@@ -11,12 +11,20 @@ interface UserStoriesContextType {
   deleteStory: (storyId: string) => Promise<void>;
   likeStory: (storyId: string) => Promise<void>;
   unlikeStory: (storyId: string) => Promise<void>;
+  addComment: (storyId: string, content: string) => Promise<void>;
+  likeComment: (storyId: string, commentId: string) => Promise<void>;
+  deleteComment: (storyId: string, commentId: string) => Promise<void>;
+  reshareStory: (storyId: string) => Promise<void>;
+  unreshareStory: (storyId: string) => Promise<void>;
+  reportStory: (storyId: string, reason: string) => Promise<void>;
   getStoriesByProduct: (productId: string) => UserStory[];
   getStoriesByUser: (userId: string) => UserStory[];
   getLiveStories: () => UserStory[];
   getFilteredStories: (filters: UserStoryFilters) => UserStory[];
   getAverageRatingByProduct: (productId: string) => number;
   refreshStories: () => Promise<void>;
+  saveStories: () => Promise<void>;
+  loadStories: () => Promise<void>;
   // Community statistics
   getCommunityStats: () => {
     totalMembers: number;
@@ -39,19 +47,39 @@ interface UserStoriesProviderProps {
   children: ReactNode;
 }
 
+const STORIES_STORAGE_KEY = 'onyx_user_stories';
+
 export const UserStoriesProvider: React.FC<UserStoriesProviderProps> = ({ children }) => {
   const [stories, setStories] = useState<UserStory[]>([]);
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
   const { items: products } = useCatalog();
 
-  // Initialize with sample data
+  // Load stories on component mount
   useEffect(() => {
-    initializeSampleData();
+    loadStories();
   }, []);
 
-  const initializeSampleData = () => {
-    const sampleStories: UserStory[] = [
+  // Emergency data reset function (for development)
+  const resetData = () => {
+    try {
+      localStorage.removeItem(STORIES_STORAGE_KEY);
+      const sampleStories = getSampleStories();
+      setStories(sampleStories);
+      localStorage.setItem(STORIES_STORAGE_KEY, JSON.stringify(sampleStories));
+      console.log('🔄 Data reset successfully');
+    } catch (error) {
+      console.error('Error resetting data:', error);
+    }
+  };
+
+  // Expose reset function globally in development
+  if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+    (window as any).resetStoriesData = resetData;
+  }
+
+  const getSampleStories = (): UserStory[] => {
+    return [
       {
         id: '1',
         userId: 'user1',
@@ -65,6 +93,22 @@ export const UserStoriesProvider: React.FC<UserStoriesProviderProps> = ({ childr
         productName: 'Ethiopian Yirgacheffe',
         likes: 24,
         likedBy: ['user2', 'user3', 'user4'],
+        comments: [
+          {
+            id: 'comment1',
+            userId: 'user2',
+            userName: 'Mike Rodriguez',
+            content: 'Totally agree! The floral notes are what got me hooked on this one too!',
+            timestamp: new Date(Date.now() - 1 * 60 * 60 * 1000),
+            likes: 3,
+            likedBy: ['user1', 'user3']
+          }
+        ],
+        commentCount: 1,
+        reshares: 5,
+        resharedBy: ['user2', 'user5'],
+        reports: [],
+        isReported: false,
         isLive: false,
         tags: ['#coffee', '#morning', '#floral'],
       },
@@ -78,6 +122,12 @@ export const UserStoriesProvider: React.FC<UserStoriesProviderProps> = ({ childr
         type: 'story',
         likes: 12,
         likedBy: ['user1', 'user3'],
+        comments: [],
+        commentCount: 0,
+        reshares: 2,
+        resharedBy: ['user4'],
+        reports: [],
+        isReported: false,
         isLive: true,
         tags: ['#live', '#pourover', '#brewing'],
       },
@@ -93,6 +143,12 @@ export const UserStoriesProvider: React.FC<UserStoriesProviderProps> = ({ childr
         productName: 'Colombia Huila',
         likes: 18,
         likedBy: ['user1', 'user2'],
+        comments: [],
+        commentCount: 0,
+        reshares: 3,
+        resharedBy: ['user1'],
+        reports: [],
+        isReported: false,
         isLive: false,
         tags: ['#colombia', '#coldbrew', '#versatile'],
       },
@@ -106,6 +162,12 @@ export const UserStoriesProvider: React.FC<UserStoriesProviderProps> = ({ childr
         type: 'story',
         likes: 31,
         likedBy: ['user1', 'user2', 'user3'],
+        comments: [],
+        commentCount: 0,
+        reshares: 8,
+        resharedBy: ['user2', 'user5'],
+        reports: [],
+        isReported: false,
         isLive: false,
         tags: ['#cupping', '#chocolate', '#brazilian'],
       },
@@ -121,6 +183,12 @@ export const UserStoriesProvider: React.FC<UserStoriesProviderProps> = ({ childr
         productName: 'Guatemala Antigua',
         likes: 15,
         likedBy: ['user2', 'user4'],
+        comments: [],
+        commentCount: 0,
+        reshares: 4,
+        resharedBy: ['user1', 'user3'],
+        reports: [],
+        isReported: false,
         isLive: true,
         tags: ['#live', '#frenchpress', '#guatemala'],
       },
@@ -134,6 +202,12 @@ export const UserStoriesProvider: React.FC<UserStoriesProviderProps> = ({ childr
         type: 'story',
         likes: 8,
         likedBy: ['user1', 'user5'],
+        comments: [],
+        commentCount: 0,
+        reshares: 1,
+        resharedBy: [],
+        reports: [],
+        isReported: false,
         isLive: false,
         tags: ['#coldbrew', '#summer', '#brazilian'],
       },
@@ -149,6 +223,12 @@ export const UserStoriesProvider: React.FC<UserStoriesProviderProps> = ({ childr
         productName: 'Guatemala Antigua',
         likes: 12,
         likedBy: ['user1', 'user3', 'user4'],
+        comments: [],
+        commentCount: 0,
+        reshares: 2,
+        resharedBy: ['user6'],
+        reports: [],
+        isReported: false,
         isLive: false,
         tags: ['#beginner', '#smooth', '#guatemala'],
       },
@@ -164,12 +244,128 @@ export const UserStoriesProvider: React.FC<UserStoriesProviderProps> = ({ childr
         productName: 'Colombia Huila',
         likes: 6,
         likedBy: ['user2', 'user5'],
+        comments: [],
+        commentCount: 0,
+        reshares: 1,
+        resharedBy: ['user7'],
+        reports: [],
+        isReported: false,
         isLive: true,
         tags: ['#live', '#espresso', '#colombia'],
       },
     ];
+  };
 
-    setStories(sampleStories);
+  // Load stories from localStorage or initialize with sample data
+  const loadStories = async (): Promise<void> => {
+    try {
+      setLoading(true);
+      
+      // Try to load from API first
+      try {
+        const response = await fetch('/api/stories');
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success && result.data) {
+            setStories(result.data);
+            console.log('Stories loaded from API:', result.data.length, 'stories');
+            return;
+          }
+        }
+      } catch (apiError) {
+        console.log('API not available, falling back to localStorage');
+      }
+      
+      // Fallback to localStorage
+      const savedStories = localStorage.getItem(STORIES_STORAGE_KEY);
+      if (savedStories) {
+        try {
+          const parsedStories = JSON.parse(savedStories);
+          if (Array.isArray(parsedStories)) {
+            // Convert timestamp strings back to Date objects and migrate old data
+            const storiesWithDates = parsedStories.map((story: any) => ({
+              // Ensure all required fields exist
+              id: story.id || Date.now().toString(),
+              userId: story.userId || 'unknown',
+              userName: story.userName || 'Unknown User',
+              userAvatar: story.userAvatar || '',
+              content: story.content || '',
+              rating: story.rating || 0,
+              timestamp: new Date(story.timestamp || Date.now()),
+              type: story.type || 'story',
+              productId: story.productId || '',
+              productName: story.productName || '',
+              images: story.images || [],
+              likes: story.likes || 0,
+              likedBy: story.likedBy || [],
+              tags: story.tags || [],
+              isLive: story.isLive || false,
+              // Add new fields if they don't exist (migration)
+              comments: story.comments || [],
+              commentCount: story.commentCount || (story.comments ? story.comments.length : 0),
+              reshares: story.reshares || 0,
+              resharedBy: story.resharedBy || [],
+              reports: story.reports || [],
+              isReported: story.isReported || false,
+            }));
+            setStories(storiesWithDates);
+            console.log('Stories loaded from localStorage:', storiesWithDates.length, 'stories');
+            // Save migrated data back to localStorage
+            localStorage.setItem(STORIES_STORAGE_KEY, JSON.stringify(storiesWithDates));
+          } else {
+            throw new Error('Saved stories is not an array');
+          }
+        } catch (parseError) {
+          console.error('Error parsing saved stories:', parseError);
+          // Clear corrupted data and use sample data
+          localStorage.removeItem(STORIES_STORAGE_KEY);
+          const sampleStories = getSampleStories();
+          setStories(sampleStories);
+          localStorage.setItem(STORIES_STORAGE_KEY, JSON.stringify(sampleStories));
+          console.log('Corrupted data cleared, initialized with sample data');
+        }
+      } else {
+        // Initialize with sample data only if no saved data exists
+        const sampleStories = getSampleStories();
+        setStories(sampleStories);
+        console.log('No saved stories found, initialized with sample data');
+        // Save sample data to localStorage
+        localStorage.setItem(STORIES_STORAGE_KEY, JSON.stringify(sampleStories));
+      }
+    } catch (error) {
+      console.error('Error loading stories:', error);
+      // Fallback to sample data on error
+      const sampleStories = getSampleStories();
+      setStories(sampleStories);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Save stories to localStorage and API
+  const saveStories = async (): Promise<void> => {
+    try {
+      // Try to save to API first
+      try {
+        const response = await fetch('/api/stories', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(stories)
+        });
+        
+        if (response.ok) {
+          console.log('Stories saved to API');
+        }
+      } catch (apiError) {
+        console.log('API not available, saving to localStorage only');
+      }
+      
+      // Always save to localStorage as backup
+      localStorage.setItem(STORIES_STORAGE_KEY, JSON.stringify(stories));
+      console.log('Stories saved to localStorage:', stories.length, 'stories');
+    } catch (error) {
+      console.error('Error saving stories:', error);
+    }
   };
 
   const createStory = async (storyData: CreateUserStoryRequest): Promise<void> => {
@@ -200,11 +396,22 @@ export const UserStoriesProvider: React.FC<UserStoriesProviderProps> = ({ childr
         images: storyData.images || [],
         likes: 0,
         likedBy: [],
+        comments: [],
+        commentCount: 0,
+        reshares: 0,
+        resharedBy: [],
+        reports: [],
+        isReported: false,
         isLive: storyData.isLive || false,
         tags: storyData.tags || [],
       };
 
-      setStories(prev => [newStory, ...prev]);
+      setStories(prev => {
+        const updated = [newStory, ...prev];
+        // Auto-save to localStorage
+        localStorage.setItem(STORIES_STORAGE_KEY, JSON.stringify(updated));
+        return updated;
+      });
       
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 500));
@@ -218,9 +425,14 @@ export const UserStoriesProvider: React.FC<UserStoriesProviderProps> = ({ childr
   const updateStory = async (storyId: string, updates: Partial<UserStory>): Promise<void> => {
     setLoading(true);
     try {
-      setStories(prev => prev.map(story => 
-        story.id === storyId ? { ...story, ...updates } : story
-      ));
+      setStories(prev => {
+        const updated = prev.map(story => 
+          story.id === storyId ? { ...story, ...updates } : story
+        );
+        // Auto-save to localStorage
+        localStorage.setItem(STORIES_STORAGE_KEY, JSON.stringify(updated));
+        return updated;
+      });
       
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 300));
@@ -236,7 +448,12 @@ export const UserStoriesProvider: React.FC<UserStoriesProviderProps> = ({ childr
 
     setLoading(true);
     try {
-      setStories(prev => prev.filter(story => story.id !== storyId));
+      setStories(prev => {
+        const updated = prev.filter(story => story.id !== storyId);
+        // Auto-save to localStorage
+        localStorage.setItem(STORIES_STORAGE_KEY, JSON.stringify(updated));
+        return updated;
+      });
       
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 300));
@@ -251,16 +468,21 @@ export const UserStoriesProvider: React.FC<UserStoriesProviderProps> = ({ childr
     if (!user) return;
 
     try {
-      setStories(prev => prev.map(story => {
-        if (story.id === storyId && !story.likedBy.includes(user.id)) {
-          return {
-            ...story,
-            likes: story.likes + 1,
-            likedBy: [...story.likedBy, user.id],
-          };
-        }
-        return story;
-      }));
+      setStories(prev => {
+        const updated = prev.map(story => {
+          if (story.id === storyId && !story.likedBy.includes(user.id)) {
+            return {
+              ...story,
+              likes: story.likes + 1,
+              likedBy: [...story.likedBy, user.id],
+            };
+          }
+          return story;
+        });
+        // Auto-save to localStorage
+        localStorage.setItem(STORIES_STORAGE_KEY, JSON.stringify(updated));
+        return updated;
+      });
     } catch (error) {
       console.error('Error liking story:', error);
     }
@@ -270,18 +492,196 @@ export const UserStoriesProvider: React.FC<UserStoriesProviderProps> = ({ childr
     if (!user) return;
 
     try {
-      setStories(prev => prev.map(story => {
-        if (story.id === storyId && story.likedBy.includes(user.id)) {
-          return {
-            ...story,
-            likes: story.likes - 1,
-            likedBy: story.likedBy.filter(id => id !== user.id),
-          };
-        }
-        return story;
-      }));
+      setStories(prev => {
+        const updated = prev.map(story => {
+          if (story.id === storyId && story.likedBy.includes(user.id)) {
+            return {
+              ...story,
+              likes: story.likes - 1,
+              likedBy: story.likedBy.filter(id => id !== user.id),
+            };
+          }
+          return story;
+        });
+        // Auto-save to localStorage
+        localStorage.setItem(STORIES_STORAGE_KEY, JSON.stringify(updated));
+        return updated;
+      });
     } catch (error) {
       console.error('Error unliking story:', error);
+    }
+  };
+
+  const addComment = async (storyId: string, content: string): Promise<void> => {
+    if (!user || !content.trim()) return;
+
+    try {
+      const newComment: Comment = {
+        id: `comment_${Date.now()}`,
+        userId: user.id,
+        userName: user.name,
+        userAvatar: user.avatar,
+        content: content.trim(),
+        timestamp: new Date(),
+        likes: 0,
+        likedBy: [],
+      };
+
+      setStories(prev => {
+        const updated = prev.map(story => {
+          if (story.id === storyId) {
+            return {
+              ...story,
+              comments: [...story.comments, newComment],
+              commentCount: story.commentCount + 1,
+            };
+          }
+          return story;
+        });
+        localStorage.setItem(STORIES_STORAGE_KEY, JSON.stringify(updated));
+        return updated;
+      });
+    } catch (error) {
+      console.error('Error adding comment:', error);
+    }
+  };
+
+  const likeComment = async (storyId: string, commentId: string): Promise<void> => {
+    if (!user) return;
+
+    try {
+      setStories(prev => {
+        const updated = prev.map(story => {
+          if (story.id === storyId) {
+            const updatedComments = story.comments.map(comment => {
+              if (comment.id === commentId && !comment.likedBy.includes(user.id)) {
+                return {
+                  ...comment,
+                  likes: comment.likes + 1,
+                  likedBy: [...comment.likedBy, user.id],
+                };
+              }
+              return comment;
+            });
+            return { ...story, comments: updatedComments };
+          }
+          return story;
+        });
+        localStorage.setItem(STORIES_STORAGE_KEY, JSON.stringify(updated));
+        return updated;
+      });
+    } catch (error) {
+      console.error('Error liking comment:', error);
+    }
+  };
+
+  const deleteComment = async (storyId: string, commentId: string): Promise<void> => {
+    if (!user) return;
+
+    try {
+      setStories(prev => {
+        const updated = prev.map(story => {
+          if (story.id === storyId) {
+            const updatedComments = story.comments.filter(comment => 
+              comment.id !== commentId || comment.userId === user.id
+            );
+            return {
+              ...story,
+              comments: updatedComments,
+              commentCount: updatedComments.length,
+            };
+          }
+          return story;
+        });
+        localStorage.setItem(STORIES_STORAGE_KEY, JSON.stringify(updated));
+        return updated;
+      });
+    } catch (error) {
+      console.error('Error deleting comment:', error);
+    }
+  };
+
+  const reshareStory = async (storyId: string): Promise<void> => {
+    if (!user) return;
+
+    try {
+      setStories(prev => {
+        const updated = prev.map(story => {
+          if (story.id === storyId && !story.resharedBy.includes(user.id)) {
+            return {
+              ...story,
+              reshares: story.reshares + 1,
+              resharedBy: [...story.resharedBy, user.id],
+            };
+          }
+          return story;
+        });
+        localStorage.setItem(STORIES_STORAGE_KEY, JSON.stringify(updated));
+        return updated;
+      });
+    } catch (error) {
+      console.error('Error resharing story:', error);
+    }
+  };
+
+  const unreshareStory = async (storyId: string): Promise<void> => {
+    if (!user) return;
+
+    try {
+      setStories(prev => {
+        const updated = prev.map(story => {
+          if (story.id === storyId && story.resharedBy.includes(user.id)) {
+            return {
+              ...story,
+              reshares: story.reshares - 1,
+              resharedBy: story.resharedBy.filter(id => id !== user.id),
+            };
+          }
+          return story;
+        });
+        localStorage.setItem(STORIES_STORAGE_KEY, JSON.stringify(updated));
+        return updated;
+      });
+    } catch (error) {
+      console.error('Error unresharing story:', error);
+    }
+  };
+
+  const reportStory = async (storyId: string, reason: string): Promise<void> => {
+    if (!user || !reason.trim()) return;
+
+    try {
+      const newReport: ReportReason = {
+        id: `report_${Date.now()}`,
+        reason: reason.trim(),
+        reportedBy: user.id,
+        timestamp: new Date(),
+      };
+
+      setStories(prev => {
+        const updated = prev.map(story => {
+          if (story.id === storyId) {
+            const existingReport = story.reports.find(r => r.reportedBy === user.id);
+            if (!existingReport) {
+              return {
+                ...story,
+                reports: [...story.reports, newReport],
+                isReported: true,
+              };
+            }
+          }
+          return story;
+        });
+        localStorage.setItem(STORIES_STORAGE_KEY, JSON.stringify(updated));
+        return updated;
+      });
+
+      // Show confirmation to user
+      if (typeof window !== 'undefined' && window.alert) {
+        window.alert('✅ Post reported. Thank you for keeping our community safe.');
+      }
+    } catch (error) {
+      console.error('Error reporting story:', error);
     }
   };
 
@@ -388,12 +788,20 @@ export const UserStoriesProvider: React.FC<UserStoriesProviderProps> = ({ childr
     deleteStory,
     likeStory,
     unlikeStory,
+    addComment,
+    likeComment,
+    deleteComment,
+    reshareStory,
+    unreshareStory,
+    reportStory,
     getStoriesByProduct,
     getStoriesByUser,
     getLiveStories,
     getFilteredStories,
     getAverageRatingByProduct,
     refreshStories,
+    saveStories,
+    loadStories,
     getCommunityStats,
   };
 
