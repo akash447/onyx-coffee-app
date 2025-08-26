@@ -254,23 +254,132 @@ const ContentController: React.FC = () => {
     }
   };
 
+  const renderHomepagePreview = () => (
+    <View style={styles.sectionPreview}>
+      {/* Banner Preview */}
+      <View style={styles.bannerPreview}>
+        <Image 
+          source={{ uri: contentData.homepage.bannerImage }}
+          style={styles.bannerPreviewImage}
+          resizeMode="cover"
+        />
+        <View style={styles.bannerOverlay}>
+          <View style={styles.brandPillPreview}>
+            <Text style={styles.brandTextPreview}>{contentData.homepage.brandName}</Text>
+          </View>
+        </View>
+      </View>
+      <Text style={styles.previewDescription}>This is how your homepage banner appears to visitors</Text>
+    </View>
+  );
+
+  const renderProductPreview = () => (
+    <View style={styles.sectionPreview}>
+      {/* Product Section Preview */}
+      <Text style={styles.previewSectionTitle}>{contentData.product.sectionTitle}</Text>
+      
+      {/* Tabs Preview */}
+      <View style={styles.tabsPreview}>
+        <View style={[styles.tabPreview, styles.activeTabPreview]}>
+          <Text style={styles.activeTabTextPreview}>{contentData.product.personalizedTitle}</Text>
+        </View>
+        <View style={styles.tabPreview}>
+          <Text style={styles.tabTextPreview}>{contentData.product.exploreTitle}</Text>
+        </View>
+      </View>
+      
+      {/* Chatbot Preview */}
+      <View style={styles.chatbotPreview}>
+        <Text style={styles.chatbotTitlePreview}>{contentData.product.chatbotWelcome}</Text>
+        <Text style={styles.chatbotSubtitlePreview}>{contentData.product.chatbotSubtitle}</Text>
+      </View>
+      
+      <Text style={styles.previewDescription}>This is how your product section appears to users</Text>
+    </View>
+  );
+
+  const renderCommunityPreview = () => (
+    <View style={styles.sectionPreview}>
+      {/* Community Header */}
+      <Text style={styles.previewSectionTitle}>{contentData.community.sectionTitle}</Text>
+      <Text style={styles.communityWelcomePreview}>{contentData.community.welcomeText}</Text>
+      
+      {/* Featured Content Preview */}
+      <View style={styles.featuredPreview}>
+        <Text style={styles.featuredTitlePreview}>{contentData.community.featuredTitle}</Text>
+        <View style={styles.featuredCardPreview}>
+          <Text style={styles.featuredContentTitlePreview}>{contentData.community.featuredContent}</Text>
+          <Text style={styles.featuredDescriptionPreview}>{contentData.community.featuredDescription}</Text>
+        </View>
+      </View>
+      
+      {/* Stats Preview */}
+      <View style={styles.statsPreview}>
+        <View style={styles.statCardPreview}>
+          <Text style={styles.statNumberPreview}>{contentData.community.membersCount}</Text>
+          <Text style={styles.statLabelPreview}>Coffee Lovers</Text>
+        </View>
+        <View style={styles.statCardPreview}>
+          <Text style={styles.statNumberPreview}>{contentData.community.guidesCount}</Text>
+          <Text style={styles.statLabelPreview}>Brew Guides</Text>
+        </View>
+        <View style={styles.statCardPreview}>
+          <Text style={styles.statNumberPreview}>{contentData.community.reviewsCount}</Text>
+          <Text style={styles.statLabelPreview}>Reviews</Text>
+        </View>
+      </View>
+      
+      <Text style={styles.previewDescription}>This is how your community section appears to users</Text>
+    </View>
+  );
+
+  const renderAboutPreview = () => (
+    <View style={styles.sectionPreview}>
+      {/* About Header */}
+      <Text style={styles.previewSectionTitle}>{contentData.about.sectionTitle}</Text>
+      <Text style={styles.aboutSubtitlePreview}>{contentData.about.sectionSubtitle}</Text>
+      
+      {/* Hero Preview */}
+      <View style={styles.heroPreview}>
+        <Text style={styles.heroTitlePreview}>{contentData.about.heroTitle}</Text>
+        <Text style={styles.heroDescriptionPreview}>{contentData.about.heroDescription}</Text>
+      </View>
+      
+      {/* Contact Preview */}
+      <View style={styles.contactPreview}>
+        <Text style={styles.contactTitlePreview}>Get in Touch</Text>
+        <Text style={styles.contactItemPreview}>📧 {contentData.about.contactEmail}</Text>
+        <Text style={styles.contactItemPreview}>📱 {contentData.about.contactPhone}</Text>
+        <Text style={styles.contactItemPreview}>📍 {contentData.about.contactAddress}</Text>
+      </View>
+      
+      <Text style={styles.previewDescription}>This is how your about section appears to users</Text>
+    </View>
+  );
+
+  const renderCurrentPreview = () => {
+    switch (activeSection) {
+      case 'homepage':
+        return renderHomepagePreview();
+      case 'product':
+        return renderProductPreview();
+      case 'community':
+        return renderCommunityPreview();
+      case 'about':
+        return renderAboutPreview();
+      default:
+        return renderHomepagePreview();
+    }
+  };
+
   const renderPreview = () => {
-    const sectionData = (contentData as any)[activeSection] || {};
-    
     return (
       <View style={styles.previewContainer}>
         <Text style={styles.previewTitle}>
           Live Preview - {contentSections.find(s => s.id === activeSection)?.title}
         </Text>
         <ScrollView style={styles.previewContent} showsVerticalScrollIndicator={false}>
-          {Object.entries(sectionData).map(([key, value]) => (
-            <View key={key} style={styles.previewItem}>
-              <Text style={styles.previewFieldName}>
-                {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}:
-              </Text>
-              <Text style={styles.previewFieldValue}>{String(value)}</Text>
-            </View>
-          ))}
+          {renderCurrentPreview()}
         </ScrollView>
         
         <View style={styles.saveSection}>
@@ -526,21 +635,184 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
   },
-  previewItem: {
-    marginBottom: 16,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e9ecef',
+  sectionPreview: {
+    gap: 16,
   },
-  previewFieldName: {
-    ...Typography.label,
+  previewDescription: {
+    ...Typography.caption,
     color: '#666',
+    textAlign: 'center',
+    fontStyle: 'italic',
+  },
+  // Homepage Preview Styles
+  bannerPreview: {
+    height: 120,
+    borderRadius: 8,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  bannerPreviewImage: {
+    width: '100%',
+    height: '100%',
+  },
+  bannerOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    padding: 12,
+  },
+  brandPillPreview: {
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    alignSelf: 'flex-start',
+  },
+  brandTextPreview: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  // Product Preview Styles
+  previewSectionTitle: {
+    ...Typography.h3,
+    color: '#000',
+    marginBottom: 8,
+  },
+  tabsPreview: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+    marginBottom: 16,
+  },
+  tabPreview: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    marginRight: 24,
+  },
+  activeTabPreview: {
+    borderBottomWidth: 2,
+    borderBottomColor: '#000',
+  },
+  tabTextPreview: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#666',
+  },
+  activeTabTextPreview: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#000',
+  },
+  chatbotPreview: {
+    backgroundColor: '#f8f9fa',
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+  },
+  chatbotTitlePreview: {
+    ...Typography.h4,
+    color: '#000',
+    marginBottom: 8,
+  },
+  chatbotSubtitlePreview: {
+    ...Typography.body,
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  // Community Preview Styles
+  communityWelcomePreview: {
+    ...Typography.body,
+    color: '#666',
+    marginBottom: 16,
+    lineHeight: 20,
+  },
+  featuredPreview: {
+    marginBottom: 16,
+  },
+  featuredTitlePreview: {
+    ...Typography.h4,
+    color: '#000',
+    marginBottom: 12,
+  },
+  featuredCardPreview: {
+    backgroundColor: '#f8f9fa',
+    borderRadius: 8,
+    padding: 16,
+  },
+  featuredContentTitlePreview: {
+    ...Typography.h5,
+    color: '#000',
+    marginBottom: 8,
+  },
+  featuredDescriptionPreview: {
+    ...Typography.body,
+    color: '#666',
+    lineHeight: 18,
+  },
+  statsPreview: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  statCardPreview: {
+    flex: 1,
+    backgroundColor: '#f8f9fa',
+    borderRadius: 8,
+    padding: 12,
+    alignItems: 'center',
+  },
+  statNumberPreview: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#000',
     marginBottom: 4,
   },
-  previewFieldValue: {
+  statLabelPreview: {
+    fontSize: 10,
+    color: '#666',
+    textAlign: 'center',
+  },
+  // About Preview Styles
+  aboutSubtitlePreview: {
     ...Typography.body,
-    color: '#000',
+    color: '#666',
+    marginBottom: 16,
     lineHeight: 20,
+  },
+  heroPreview: {
+    backgroundColor: '#f8f9fa',
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 16,
+  },
+  heroTitlePreview: {
+    ...Typography.h4,
+    color: '#000',
+    marginBottom: 8,
+  },
+  heroDescriptionPreview: {
+    ...Typography.body,
+    color: '#666',
+    lineHeight: 18,
+  },
+  contactPreview: {
+    backgroundColor: '#f8f9fa',
+    borderRadius: 8,
+    padding: 16,
+  },
+  contactTitlePreview: {
+    ...Typography.h5,
+    color: '#000',
+    marginBottom: 12,
+  },
+  contactItemPreview: {
+    ...Typography.body,
+    color: '#333',
+    marginBottom: 4,
   },
   saveSection: {
     padding: 16,
