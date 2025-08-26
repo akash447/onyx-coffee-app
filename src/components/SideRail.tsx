@@ -29,25 +29,21 @@ const SideRail: React.FC<SideRailProps> = ({
     {
       id: 'product',
       label: 'Product',
-      icon: '☕',
       section: 'product' as const,
     },
     {
       id: 'community',
       label: 'Community',
-      icon: '👥',
       section: 'community' as const,
     },
     {
       id: 'about',
       label: 'About',
-      icon: 'ℹ️',
       section: 'about' as const,
     },
     {
       id: 'admin',
       label: 'Admin',
-      icon: '⚙️',
       section: 'admin' as const,
     },
   ];
@@ -86,7 +82,6 @@ const SideRail: React.FC<SideRailProps> = ({
             ]}
             onPress={() => handleItemPress(item.section)}
           >
-            <Text style={styles.menuIcon}>{item.icon}</Text>
             {isDesktop ? (
               <Text 
                 style={[
