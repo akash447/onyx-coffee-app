@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -7,9 +7,14 @@ import {
   Pressable,
   Image,
   Alert,
+  FlatList,
+  Platform,
 } from 'react-native';
 import { RouteType, DeviceType, PlatformType } from '../types';
 import { useContent } from '../contexts/ContentContext';
+import { useUserStories } from '../contexts/UserStoriesContext';
+import UserStoryCard from '../components/UserStoryCard';
+import CreateUserStory from '../components/CreateUserStory';
 
 interface CommunitySectionProps {
   deviceType: DeviceType;
@@ -23,6 +28,11 @@ const CommunitySection: React.FC<CommunitySectionProps> = ({
 }) => {
   const isDesktop = deviceType === 'desktop';
   const { contentData } = useContent();
+  const { stories, getLiveStories, getCommunityStats } = useUserStories();
+  const [showCreateStory, setShowCreateStory] = useState(false);
+  const [selectedTab, setSelectedTab] = useState<'overview' | 'stories' | 'live'>('overview');
+  
+  const communityStats = getCommunityStats();
 
   const communityTiles = [
     {
@@ -49,15 +59,15 @@ const CommunitySection: React.FC<CommunitySectionProps> = ({
   ];
 
   const handleTilePress = (page: 'brew' | 'stories' | 'tips') => {
-    // For now, show an alert with content preview
+    if (page === 'stories') {
+      setSelectedTab('stories');
+      return;
+    }
+    
     const content = {
       brew: {
         title: '☕ Brew Guides',
         message: 'Coming Soon!\n\n• Pour-over techniques\n• Espresso brewing\n• French press methods\n• Cold brew recipes\n• Grind size guide'
-      },
-      stories: {
-        title: '📖 User Stories',
-        message: 'Coming Soon!\n\n• Customer reviews\n• Coffee journey stories\n• Brewing experiences\n• Community highlights\n• Photo submissions'
       },
       tips: {
         title: '💡 Tips & Tricks',
@@ -73,9 +83,6 @@ const CommunitySection: React.FC<CommunitySectionProps> = ({
         { text: 'Subscribe for Updates', style: 'default' }
       ]
     );
-    
-    // TODO: Replace with actual navigation
-    // onNavigate({ kind: 'communityPage', page });
   };
 
   const renderTile = (tile: typeof communityTiles[0]) => (
@@ -101,19 +108,104 @@ const CommunitySection: React.FC<CommunitySectionProps> = ({
     </Pressable>
   );
 
-  return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      {/* Section Title */}
-      <Text style={[
-        styles.sectionTitle,
-        isDesktop ? styles.desktopSectionTitle : styles.mobileSectionTitle
-      ]}>
-        {contentData.community.sectionTitle}
-      </Text>
+  const renderTabContent = () => {
+    switch (selectedTab) {
+      case 'stories':
+        return (
+          <View style={styles.storiesContainer}>
+            <View style={styles.storiesHeader}>
+              <Text style={styles.storiesTitle}>Community Stories</Text>
+              <Pressable
+                style={styles.createButton}
+                onPress={() => setShowCreateStory(true)}
+              >
+                <Text style={styles.createButtonText}>+ Share Story</Text>
+              </Pressable>
+            </View>
+            <FlatList
+              data={stories}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <UserStoryCard story={item} />
+              )}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.storiesList}
+            />
+          </View>
+        );
+      
+      case 'live':
+        const liveStories = getLiveStories();
+        return (
+          <View style={styles.storiesContainer}>
+            <View style={styles.storiesHeader}>
+              <Text style={styles.storiesTitle}>🔴 Live Stories</Text>
+              <Pressable
+                style={styles.createButton}
+                onPress={() => setShowCreateStory(true)}
+              >
+                <Text style={styles.createButtonText}>+ Go Live</Text>
+              </Pressable>
+            </View>
+            {liveStories.length > 0 ? (
+              <FlatList
+                data={liveStories}
+                keyExtractor={(item) => item.id}
+                renderItem={({ item }) => (
+                  <UserStoryCard story={item} />
+                )}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.storiesList}
+              />
+            ) : (
+              <View style={styles.emptyState}>
+                <Text style={styles.emptyTitle}>No Live Stories</Text>
+                <Text style={styles.emptyDescription}>Be the first to share what's happening right now!</Text>
+              </View>
+            )}
+          </View>
+        );
+      
+      default:
+        return renderOverviewContent();
+    }
+  };
 
-      <Text style={styles.sectionSubtitle}>
-        {contentData.community.welcomeText}
-      </Text>
+  const renderOverviewContent = () => (
+    <ScrollView style={styles.overviewContainer} showsVerticalScrollIndicator={false}>
+      {/* Header with Section Title and Share Button */}
+      <View style={styles.headerContainer}>
+        <View style={styles.headerContent}>
+          <Text style={[
+            styles.sectionTitle,
+            isDesktop ? styles.desktopSectionTitle : styles.mobileSectionTitle
+          ]}>
+            {contentData.community.sectionTitle}
+          </Text>
+          <Pressable
+            style={styles.createButton}
+            onPress={() => setShowCreateStory(true)}
+          >
+            <Text style={styles.createButtonText}>+ Share Story</Text>
+          </Pressable>
+        </View>
+        <Text style={styles.sectionSubtitle}>
+          {contentData.community.welcomeText}
+        </Text>
+      </View>
+
+      {/* Community Stories Preview */}
+      <View style={styles.storiesPreview}>
+        <View style={styles.storiesPreviewHeader}>
+          <Text style={styles.storiesPreviewTitle}>📖 Community Stories</Text>
+          <Pressable onPress={() => setSelectedTab('stories')}>
+            <Text style={styles.viewAllText}>View All →</Text>
+          </Pressable>
+        </View>
+        {stories.slice(0, 5).map((story) => (
+          <UserStoryCard key={story.id} story={story} showProduct={true} />
+        ))}
+      </View>
 
       {/* Community Tiles */}
       <View style={[
@@ -144,32 +236,198 @@ const CommunitySection: React.FC<CommunitySectionProps> = ({
         <Text style={styles.statsTitle}>Community Highlights</Text>
         <View style={styles.statsGrid}>
           <View style={styles.statCard}>
-            <Text style={styles.statNumber}>{contentData.community.membersCount}</Text>
+            <Text style={styles.statNumber}>{communityStats.totalMembers}</Text>
             <Text style={styles.statLabel}>Coffee Lovers</Text>
           </View>
           <View style={styles.statCard}>
-            <Text style={styles.statNumber}>{contentData.community.guidesCount}</Text>
-            <Text style={styles.statLabel}>Brew Guides</Text>
+            <Text style={styles.statNumber}>{communityStats.totalStories}</Text>
+            <Text style={styles.statLabel}>Stories</Text>
           </View>
           <View style={styles.statCard}>
-            <Text style={styles.statNumber}>{contentData.community.reviewsCount}</Text>
+            <Text style={styles.statNumber}>{communityStats.totalReviews}</Text>
             <Text style={styles.statLabel}>Reviews</Text>
           </View>
         </View>
       </View>
     </ScrollView>
   );
+
+  return (
+    <View style={styles.container}>
+      {/* Tab Navigation */}
+      <View style={styles.tabContainer}>
+        <Pressable
+          style={[styles.tab, selectedTab === 'overview' && styles.activeTab]}
+          onPress={() => setSelectedTab('overview')}
+        >
+          <Text style={[styles.tabText, selectedTab === 'overview' && styles.activeTabText]}>
+            Overview
+          </Text>
+        </Pressable>
+        <Pressable
+          style={[styles.tab, selectedTab === 'stories' && styles.activeTab]}
+          onPress={() => setSelectedTab('stories')}
+        >
+          <Text style={[styles.tabText, selectedTab === 'stories' && styles.activeTabText]}>
+            Stories
+          </Text>
+        </Pressable>
+        <Pressable
+          style={[styles.tab, selectedTab === 'live' && styles.activeTab]}
+          onPress={() => setSelectedTab('live')}
+        >
+          <Text style={[styles.tabText, selectedTab === 'live' && styles.activeTabText]}>
+            🔴 Live
+          </Text>
+        </Pressable>
+      </View>
+
+      {/* Tab Content */}
+      {renderTabContent()}
+
+      {/* Create Story Modal */}
+      <CreateUserStory
+        visible={showCreateStory}
+        onClose={() => setShowCreateStory(false)}
+        onStoryCreated={() => setSelectedTab('overview')}
+        initialType="story"
+      />
+    </View>
+  );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  tabContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+  },
+  tab: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    marginRight: 8,
+    borderRadius: 20,
+    backgroundColor: '#f1f3f4',
+  },
+  activeTab: {
+    backgroundColor: '#000',
+  },
+  tabText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#666',
+  },
+  activeTabText: {
+    color: '#fff',
+  },
+  overviewContainer: {
+    flex: 1,
     padding: 16,
+  },
+  storiesContainer: {
+    flex: 1,
+    padding: 16,
+  },
+  storiesHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  storiesTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#000',
+  },
+  createButton: {
+    backgroundColor: '#000',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  createButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  storiesList: {
+    paddingBottom: 20,
+  },
+  storiesPreview: {
+    marginVertical: 20,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 16,
+    ...Platform.select({
+      web: {
+        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+      },
+      default: {
+        shadowColor: '#000',
+        shadowOffset: {
+          width: 0,
+          height: 2,
+        },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
+      },
+    }),
+  },
+  storiesPreviewHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  storiesPreviewTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000',
+  },
+  viewAllText: {
+    fontSize: 14,
+    color: '#007AFF',
+    fontWeight: '500',
+  },
+  emptyState: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 60,
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#000',
+    marginBottom: 8,
+  },
+  emptyDescription: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+  },
+  headerContainer: {
+    marginBottom: 16,
+  },
+  headerContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 8,
   },
   sectionTitle: {
     fontWeight: '600',
     marginBottom: 8,
     color: '#000',
+    flex: 1,
+    marginRight: 12,
   },
   desktopSectionTitle: {
     fontSize: 24,
@@ -198,14 +456,21 @@ const styles = StyleSheet.create({
     backgroundColor: '#E2D8A5',
     borderRadius: 8,
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 3,
+    ...Platform.select({
+      web: {
+        boxShadow: '0 2px 3px rgba(0, 0, 0, 0.1)',
+      },
+      default: {
+        shadowColor: '#000',
+        shadowOffset: {
+          width: 0,
+          height: 2,
+        },
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+        elevation: 3,
+      },
+    }),
   },
   desktopTile: {
     flex: 1,

@@ -10,8 +10,11 @@ import {
 import { RouteType, DeviceType, PlatformType, ProductTab, CatalogItem } from '../types';
 import { useCatalog } from '../contexts/CatalogContext';
 import { useContent } from '../contexts/ContentContext';
+import { useUserStories } from '../contexts/UserStoriesContext';
 import TasteChatbot from '../components/TasteChatbot';
 import ProductCard from '../components/ProductCard';
+import UserStoryCard from '../components/UserStoryCard';
+import CreateUserStory from '../components/CreateUserStory';
 
 interface ProductSectionProps {
   deviceType: DeviceType;
@@ -28,8 +31,10 @@ const ProductSection: React.FC<ProductSectionProps> = ({
 }) => {
   const { items: products, loading } = useCatalog();
   const { contentData } = useContent();
+  const { getStoriesByProduct, getAverageRatingByProduct } = useUserStories();
   const [activeTab, setActiveTab] = useState<ProductTab>('personal');
   const [selectedProduct, setSelectedProduct] = useState<CatalogItem | null>(null);
+  const [showCreateReview, setShowCreateReview] = useState(false);
 
   const isDesktop = deviceType === 'desktop';
   const numColumns = isDesktop ? 4 : 2;
@@ -140,12 +145,50 @@ const ProductSection: React.FC<ProductSectionProps> = ({
               </View>
             )}
 
-            {/* Placeholder for reviews */}
+            {/* Product Reviews */}
             <View style={styles.reviewsSection}>
-              <Text style={styles.subSectionTitle}>Customer Reviews</Text>
-              <Text style={styles.placeholderText}>
-                Reviews and comments will appear here. Connect to your backend to load real reviews.
-              </Text>
+              <View style={styles.reviewsHeader}>
+                <Text style={styles.subSectionTitle}>Customer Reviews</Text>
+                <View style={styles.ratingInfo}>
+                  <Text style={styles.avgRating}>
+                    ⭐ {getAverageRatingByProduct(selectedProduct.id) || 0}/5
+                  </Text>
+                  <Text style={styles.reviewCount}>
+                    ({getStoriesByProduct(selectedProduct.id).filter(s => s.type === 'review').length} reviews)
+                  </Text>
+                </View>
+                <Pressable
+                  style={styles.writeReviewButton}
+                  onPress={() => setShowCreateReview(true)}
+                >
+                  <Text style={styles.writeReviewText}>Write Review</Text>
+                </Pressable>
+              </View>
+              
+              {getStoriesByProduct(selectedProduct.id).filter(s => s.type === 'review').length > 0 ? (
+                <View style={styles.reviewsList}>
+                  {getStoriesByProduct(selectedProduct.id)
+                    .filter(story => story.type === 'review')
+                    .slice(0, 5)
+                    .map((story) => (
+                      <UserStoryCard key={story.id} story={story} showProduct={false} />
+                    ))}
+                  
+                  {getStoriesByProduct(selectedProduct.id).filter(s => s.type === 'review').length > 5 && (
+                    <Pressable style={styles.viewAllReviews}>
+                      <Text style={styles.viewAllReviewsText}>
+                        View all {getStoriesByProduct(selectedProduct.id).filter(s => s.type === 'review').length} reviews →
+                      </Text>
+                    </Pressable>
+                  )}
+                </View>
+              ) : (
+                <View style={styles.noReviews}>
+                  <Text style={styles.noReviewsText}>
+                    No reviews yet. Be the first to share your experience!
+                  </Text>
+                </View>
+              )}
             </View>
           </View>
         </View>
@@ -221,6 +264,15 @@ const ProductSection: React.FC<ProductSectionProps> = ({
       <View style={styles.tabContent}>
         {renderTabContent()}
       </View>
+
+      {/* Create Review Modal */}
+      <CreateUserStory
+        visible={showCreateReview}
+        onClose={() => setShowCreateReview(false)}
+        onStoryCreated={() => {}} // Stay on product page after review
+        initialProductId={selectedProduct?.id}
+        initialType="review"
+      />
     </View>
   );
 };
@@ -394,10 +446,60 @@ const styles = StyleSheet.create({
   reviewsSection: {
     marginTop: 8,
   },
-  placeholderText: {
+  reviewsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  ratingInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  avgRating: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000',
+  },
+  reviewCount: {
     fontSize: 14,
-    color: '#999',
+    color: '#666',
+  },
+  writeReviewButton: {
+    backgroundColor: '#000',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  writeReviewText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  reviewsList: {
+    gap: 12,
+  },
+  viewAllReviews: {
+    marginTop: 8,
+    alignSelf: 'center',
+  },
+  viewAllReviewsText: {
+    fontSize: 14,
+    color: '#007AFF',
+    fontWeight: '500',
+  },
+  noReviews: {
+    paddingVertical: 24,
+    alignItems: 'center',
+  },
+  noReviewsText: {
+    fontSize: 14,
+    color: '#666',
     fontStyle: 'italic',
+    textAlign: 'center',
   },
 });
 

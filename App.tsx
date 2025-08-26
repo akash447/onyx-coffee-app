@@ -14,6 +14,7 @@ import { AuthProvider } from './src/contexts/AuthContext';
 import { CatalogProvider } from './src/contexts/CatalogContext';
 import { CartProvider } from './src/contexts/CartContext';
 import { ContentProvider } from './src/contexts/ContentContext';
+import { UserStoriesProvider } from './src/contexts/UserStoriesContext';
 
 // Components
 import Banner from './src/components/Banner';
@@ -163,6 +164,7 @@ export default function App() {
           <CatalogProvider>
             <CartProvider>
               <ContentProvider>
+                <UserStoriesProvider>
               <FontLoader />
               <SafeAreaView style={styles.container}>
                 <StatusBar 
@@ -193,6 +195,7 @@ export default function App() {
                   </View>
                 </View>
               </SafeAreaView>
+                </UserStoriesProvider>
               </ContentProvider>
             </CartProvider>
           </CatalogProvider>

@@ -16,8 +16,8 @@ const FontLoader = () => {
           'https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap',
           // Noto Sans Devanagari for Hindi support
           'https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@300;400;500;600;700;800;900&display=swap',
-          // Mukti font for Hindi (fallback)
-          'https://fonts.googleapis.com/css2?family=Mukti:wght@300;400;500;600;700;800&display=swap'
+          // Poppins font for additional options
+          'https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap'
         ];
 
         fontLinks.forEach(href => {
@@ -40,7 +40,7 @@ const FontLoader = () => {
         :root {
           --font-family-regular: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
           --font-family-heading: 'Sora', 'Manrope', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
-          --font-family-hindi: 'Noto Sans Devanagari', 'Mukti', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          --font-family-hindi: 'Noto Sans Devanagari', 'Poppins', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
         
         /* Apply font smoothing for better rendering */

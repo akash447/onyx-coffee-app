@@ -197,14 +197,6 @@ const ContentController: React.FC = () => {
         {renderInputField('community', 'featuredDescription', 'Featured Item Description', 'Description of featured content', true, 3)}
       </View>
 
-      <View style={styles.contentGroup}>
-        <Text style={styles.groupTitle}>📊 Community Statistics</Text>
-        <Text style={styles.groupDescription}>Numbers displayed in community highlights section</Text>
-        
-        {renderInputField('community', 'membersCount', 'Coffee Lovers Count', 'Number of community members')}
-        {renderInputField('community', 'guidesCount', 'Brew Guides Count', 'Number of brewing guides')}
-        {renderInputField('community', 'reviewsCount', 'Reviews Count', 'Number of reviews')}
-      </View>
     </View>
   );
 
@@ -310,22 +302,6 @@ const ContentController: React.FC = () => {
         <View style={styles.featuredCardPreview}>
           <Text style={styles.featuredContentTitlePreview}>{contentData.community.featuredContent}</Text>
           <Text style={styles.featuredDescriptionPreview}>{contentData.community.featuredDescription}</Text>
-        </View>
-      </View>
-      
-      {/* Stats Preview */}
-      <View style={styles.statsPreview}>
-        <View style={styles.statCardPreview}>
-          <Text style={styles.statNumberPreview}>{contentData.community.membersCount}</Text>
-          <Text style={styles.statLabelPreview}>Coffee Lovers</Text>
-        </View>
-        <View style={styles.statCardPreview}>
-          <Text style={styles.statNumberPreview}>{contentData.community.guidesCount}</Text>
-          <Text style={styles.statLabelPreview}>Brew Guides</Text>
-        </View>
-        <View style={styles.statCardPreview}>
-          <Text style={styles.statNumberPreview}>{contentData.community.reviewsCount}</Text>
-          <Text style={styles.statLabelPreview}>Reviews</Text>
         </View>
       </View>
       
@@ -612,14 +588,21 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     borderColor: '#d1d5db',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 4,
+    ...Platform.select({
+      web: {
+        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+      },
+      default: {
+        shadowColor: '#000',
+        shadowOffset: {
+          width: 0,
+          height: 2,
+        },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 4,
+      },
+    }),
   },
   previewTitle: {
     ...Typography.h3,

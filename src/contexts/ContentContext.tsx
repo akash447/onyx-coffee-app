@@ -18,9 +18,6 @@ export interface ContentData {
     featuredTitle: string;
     featuredContent: string;
     featuredDescription: string;
-    membersCount: string;
-    guidesCount: string;
-    reviewsCount: string;
   };
   about: {
     sectionTitle: string;
@@ -72,9 +69,6 @@ export const ContentProvider: React.FC<ContentProviderProps> = ({ children }) =>
       featuredTitle: 'Featured This Week',
       featuredContent: '"The Perfect Pour-Over Technique"',
       featuredDescription: 'Master barista Sarah Chen shares her secrets for brewing the perfect cup using our Ethiopian Yirgacheffe beans.',
-      membersCount: '1,250+',
-      guidesCount: '500+',
-      reviewsCount: '2,100+',
     },
     about: {
       sectionTitle: 'About Onyx',

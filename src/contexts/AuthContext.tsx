@@ -81,7 +81,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           const user = JSON.parse(userString);
           dispatch({ type: 'RESTORE_USER', payload: user });
         } else {
-          dispatch({ type: 'RESTORE_USER', payload: null });
+          // Auto-login demo user for development
+          const demoUser: User = {
+            id: 'demo-user',
+            name: 'Coffee Lover',
+            email: 'demo@onyx-coffee.com',
+            initials: 'CL',
+            avatar: 'https://ui-avatars.com/api/?name=Coffee+Lover&background=000&color=fff&size=100',
+          };
+          await AsyncStorage.setItem('bb-auth', JSON.stringify(demoUser));
+          dispatch({ type: 'RESTORE_USER', payload: demoUser });
         }
       } catch (error) {
         console.error('Failed to restore user:', error);
@@ -130,6 +139,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         name: 'Coffee Lover',
         email: 'demo@onyx-coffee.com',
         initials: 'CL',
+        avatar: 'https://ui-avatars.com/api/?name=Coffee+Lover&background=000&color=fff&size=100',
       };
       
       await AsyncStorage.setItem('bb-auth', JSON.stringify(demoUser));
