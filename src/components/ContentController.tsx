@@ -16,14 +16,13 @@ import { useContent } from '../contexts/ContentContext';
 interface ContentSection {
   id: string;
   title: string;
-  icon: string;
 }
 
 const contentSections: ContentSection[] = [
-  { id: 'homepage', title: 'Homepage', icon: '🏠' },
-  { id: 'product', title: 'Product', icon: '☕' },
-  { id: 'community', title: 'Community', icon: '👥' },
-  { id: 'about', title: 'About', icon: 'ℹ️' },
+  { id: 'homepage', title: 'Homepage' },
+  { id: 'product', title: 'Product' },
+  { id: 'community', title: 'Community' },
+  { id: 'about', title: 'About' },
 ];
 
 const ContentController: React.FC = () => {
@@ -304,7 +303,6 @@ const ContentController: React.FC = () => {
             ]}
             onPress={() => setActiveSection(section.id)}
           >
-            <Text style={styles.navIcon}>{section.icon}</Text>
             <Text style={[
               styles.navText,
               activeSection === section.id && styles.activeNavText
@@ -374,10 +372,6 @@ const styles = StyleSheet.create({
   activeNavItem: {
     backgroundColor: '#000',
     borderColor: '#000',
-  },
-  navIcon: {
-    fontSize: 20,
-    marginBottom: 4,
   },
   navText: {
     ...Typography.caption,
