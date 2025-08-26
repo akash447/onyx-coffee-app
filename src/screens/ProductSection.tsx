@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { RouteType, DeviceType, PlatformType, ProductTab, CatalogItem } from '../types';
 import { useCatalog } from '../contexts/CatalogContext';
+import { useContent } from '../contexts/ContentContext';
 import TasteChatbot from '../components/TasteChatbot';
 import ProductCard from '../components/ProductCard';
 
@@ -26,6 +27,7 @@ const ProductSection: React.FC<ProductSectionProps> = ({
   onNavigate,
 }) => {
   const { items: products, loading } = useCatalog();
+  const { contentData } = useContent();
   const [activeTab, setActiveTab] = useState<ProductTab>('personal');
   const [selectedProduct, setSelectedProduct] = useState<CatalogItem | null>(null);
 
@@ -177,7 +179,7 @@ const ProductSection: React.FC<ProductSectionProps> = ({
         styles.sectionTitle,
         isDesktop ? styles.desktopSectionTitle : styles.mobileSectionTitle
       ]}>
-        Coffee Products
+        {contentData.product.sectionTitle}
       </Text>
 
       {/* Tabs */}
@@ -193,7 +195,7 @@ const ProductSection: React.FC<ProductSectionProps> = ({
             styles.tabText,
             activeTab === 'personal' && styles.activeTabText,
           ]}>
-            Product for you
+            {contentData.product.personalizedTitle}
           </Text>
           {activeTab === 'personal' && <View style={styles.tabUnderline} />}
         </Pressable>
@@ -209,7 +211,7 @@ const ProductSection: React.FC<ProductSectionProps> = ({
             styles.tabText,
             activeTab === 'explore' && styles.activeTabText,
           ]}>
-            Explore other products
+            {contentData.product.exploreTitle}
           </Text>
           {activeTab === 'explore' && <View style={styles.tabUnderline} />}
         </Pressable>

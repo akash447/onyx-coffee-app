@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { ChatbotQuestion, ChatbotResponse, CatalogItem } from '../types';
 import { useCatalog } from '../contexts/CatalogContext';
+import { useContent } from '../contexts/ContentContext';
 import ProductCard from './ProductCard';
 import { Typography, FontConfig } from '../utils/fonts';
 
@@ -25,6 +26,7 @@ const TasteChatbot: React.FC<TasteChatbotProps> = ({
   onProductPress,
 }) => {
   const { getRecommendedItem } = useCatalog();
+  const { contentData } = useContent();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [responses, setResponses] = useState<ChatbotResponse>({});
   const [recommendedProduct, setRecommendedProduct] = useState<CatalogItem | null>(null);
@@ -181,6 +183,12 @@ const TasteChatbot: React.FC<TasteChatbotProps> = ({
 
   return (
     <View style={styles.container}>
+      {/* Welcome Section */}
+      <View style={styles.welcomeSection}>
+        <Text style={styles.welcomeTitle}>{contentData.product.chatbotWelcome}</Text>
+        <Text style={styles.welcomeSubtitle}>{contentData.product.chatbotSubtitle}</Text>
+      </View>
+      
       <View style={styles.chatbotCard}>
         <Text style={styles.questionText}>{currentQuestion.question}</Text>
         
@@ -393,6 +401,33 @@ const styles = StyleSheet.create({
   restartButtonText: {
     ...Typography.button,
     color: '#000',
+  },
+  welcomeSection: {
+    backgroundColor: '#E2D8A5',
+    borderRadius: 12,
+    padding: 20,
+    marginBottom: 20,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  welcomeTitle: {
+    ...Typography.h3,
+    color: '#000',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  welcomeSubtitle: {
+    ...Typography.body,
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 20,
   },
 });
 

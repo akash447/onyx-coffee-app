@@ -11,6 +11,7 @@ import {
   Platform,
 } from 'react-native';
 import { Typography, FontConfig } from '../utils/fonts';
+import { useContent } from '../contexts/ContentContext';
 
 interface ContentSection {
   id: string;
@@ -27,57 +28,16 @@ const contentSections: ContentSection[] = [
 
 const ContentController: React.FC = () => {
   const [activeSection, setActiveSection] = useState<string>('homepage');
-  const [contentData, setContentData] = useState({
-    homepage: {
-      bannerTitle: 'Welcome to Onyx Coffee',
-      bannerSubtitle: 'Discover the perfect blend for your taste',
-      bannerImage: 'https://images.unsplash.com/photo-1447933601403-0c6688de566e?w=800',
-      heroText: 'Premium Coffee Experience',
-      welcomeMessage: 'Every cup tells a story of quality and passion',
-    },
-    product: {
-      sectionTitle: 'Coffee Products',
-      exploreTitle: 'Explore other products',
-      personalizedTitle: 'Product for you',
-      chatbotWelcome: '☕ Coffee Taste Assistant',
-      chatbotSubtitle: 'Let\'s find your perfect brew! Answer a few questions and discover coffee that matches your taste.',
-    },
-    community: {
-      sectionTitle: 'Coffee Community',
-      welcomeText: 'Connect with fellow coffee enthusiasts and share your brewing journey.',
-      featuredContent: '"The Perfect Pour-Over Technique"',
-      featuredTitle: 'Featured This Week',
-      featuredDescription: 'Master barista Sarah Chen shares her secrets for brewing the perfect cup using our Ethiopian Yirgacheffe beans.',
-      membersCount: '1,250+',
-      guidesCount: '500+',
-      reviewsCount: '2,100+',
-    },
-    about: {
-      companyName: 'Onyx Coffee',
-      tagline: 'Crafting Excellence in Every Cup',
-      description: 'We are passionate about bringing you the finest coffee experience from around the world.',
-      missionStatement: 'To deliver exceptional coffee while supporting sustainable farming practices.',
-      address: '123 Coffee Street, Brew City, BC 12345',
-      email: 'hello@onyxcoffee.com',
-      phone: '+91 98765 43210',
-    },
-  });
+  const { contentData, updateContent, saveContent } = useContent();
 
   const handleContentUpdate = (section: string, field: string, value: string) => {
-    setContentData(prev => ({
-      ...prev,
-      [section]: {
-        ...prev[section as keyof typeof prev],
-        [field]: value,
-      },
-    }));
+    updateContent(section as keyof typeof contentData, field, value);
   };
 
   const handleSave = () => {
     if (Platform.OS === 'web') {
       if (confirm('Save content changes? This will update the live content on your website.')) {
-        // Save logic here - integrate with your backend/storage
-        alert('✅ Content saved successfully!');
+        saveContent();
       }
     } else {
       Alert.alert(
@@ -85,7 +45,7 @@ const ContentController: React.FC = () => {
         'Save content changes? This will update the live content on your website.',
         [
           { text: 'Cancel', style: 'cancel' },
-          { text: 'Save', onPress: () => Alert.alert('✅ Success', 'Content saved successfully!') }
+          { text: 'Save', onPress: saveContent }
         ]
       );
     }

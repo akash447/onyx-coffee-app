@@ -13,6 +13,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { AuthProvider } from './src/contexts/AuthContext';
 import { CatalogProvider } from './src/contexts/CatalogContext';
 import { CartProvider } from './src/contexts/CartContext';
+import { ContentProvider } from './src/contexts/ContentContext';
 
 // Components
 import Banner from './src/components/Banner';
@@ -161,6 +162,7 @@ export default function App() {
         <AuthProvider>
           <CatalogProvider>
             <CartProvider>
+              <ContentProvider>
               <FontLoader />
               <SafeAreaView style={styles.container}>
                 <StatusBar 
@@ -191,6 +193,7 @@ export default function App() {
                   </View>
                 </View>
               </SafeAreaView>
+              </ContentProvider>
             </CartProvider>
           </CatalogProvider>
         </AuthProvider>

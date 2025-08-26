@@ -9,6 +9,7 @@ import {
   Alert,
 } from 'react-native';
 import { RouteType, DeviceType, PlatformType } from '../types';
+import { useContent } from '../contexts/ContentContext';
 
 interface CommunitySectionProps {
   deviceType: DeviceType;
@@ -21,6 +22,7 @@ const CommunitySection: React.FC<CommunitySectionProps> = ({
   onNavigate,
 }) => {
   const isDesktop = deviceType === 'desktop';
+  const { contentData } = useContent();
 
   const communityTiles = [
     {
@@ -106,11 +108,11 @@ const CommunitySection: React.FC<CommunitySectionProps> = ({
         styles.sectionTitle,
         isDesktop ? styles.desktopSectionTitle : styles.mobileSectionTitle
       ]}>
-        Community
+        {contentData.community.sectionTitle}
       </Text>
 
       <Text style={styles.sectionSubtitle}>
-        Connect with fellow coffee enthusiasts and share your brewing journey.
+        {contentData.community.welcomeText}
       </Text>
 
       {/* Community Tiles */}
@@ -123,13 +125,13 @@ const CommunitySection: React.FC<CommunitySectionProps> = ({
 
       {/* Featured Content Placeholder */}
       <View style={styles.featuredSection}>
-        <Text style={styles.featuredTitle}>Featured This Week</Text>
+        <Text style={styles.featuredTitle}>{contentData.community.featuredTitle}</Text>
         <View style={styles.featuredCard}>
           <Text style={styles.featuredCardTitle}>
-            "The Perfect Pour-Over Technique"
+            {contentData.community.featuredContent}
           </Text>
           <Text style={styles.featuredCardDescription}>
-            Master barista Sarah Chen shares her secrets for brewing the perfect cup using our Ethiopian Yirgacheffe beans.
+            {contentData.community.featuredDescription}
           </Text>
           <Pressable style={styles.readMoreButton}>
             <Text style={styles.readMoreText}>Read More →</Text>
@@ -142,15 +144,15 @@ const CommunitySection: React.FC<CommunitySectionProps> = ({
         <Text style={styles.statsTitle}>Community Highlights</Text>
         <View style={styles.statsGrid}>
           <View style={styles.statCard}>
-            <Text style={styles.statNumber}>1,250+</Text>
+            <Text style={styles.statNumber}>{contentData.community.membersCount}</Text>
             <Text style={styles.statLabel}>Coffee Lovers</Text>
           </View>
           <View style={styles.statCard}>
-            <Text style={styles.statNumber}>500+</Text>
+            <Text style={styles.statNumber}>{contentData.community.guidesCount}</Text>
             <Text style={styles.statLabel}>Brew Guides</Text>
           </View>
           <View style={styles.statCard}>
-            <Text style={styles.statNumber}>2,100+</Text>
+            <Text style={styles.statNumber}>{contentData.community.reviewsCount}</Text>
             <Text style={styles.statLabel}>Reviews</Text>
           </View>
         </View>
