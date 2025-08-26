@@ -162,11 +162,11 @@ const TasteChatbot: React.FC<TasteChatbotProps> = ({
           </Pressable>
         </ScrollView>
 
-        {/* Single Pink Panther GIF in right corner */}
+        {/* Dynamic GIF from Content Controller */}
         <View style={[styles.pinkPantherContainer, isDesktop ? styles.desktopGif : styles.mobileGif]}>
           <Image
             source={{ 
-              uri: 'https://media.giphy.com/media/3o7TKqnN349PBUtGFO/giphy.gif' 
+              uri: contentData.product.personalizedGif || 'https://media.giphy.com/media/3o7TKqnN349PBUtGFO/giphy.gif' 
             }}
             style={[styles.pinkPantherGif, isDesktop ? styles.desktopGifSize : styles.mobileGifSize]}
             resizeMode="contain"

@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AuthState, User } from '../types';
+import databaseService from '../services/DatabaseService';
 
 // Auth Actions
 type AuthAction =
@@ -72,6 +73,61 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
 
+  // Helper function to create or update user in database
+  const createUserInDatabase = async (user: User) => {
+    try {
+      console.log('AuthContext: Creating/updating user in database:', user);
+      // Check if user already exists
+      const existingUserResponse = await databaseService.getUserById(user.id);
+      if (!existingUserResponse.success || !existingUserResponse.data) {
+        // User doesn't exist, create them
+        const dbUser = {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          avatar: user.avatar,
+          bio: `Coffee enthusiast and member of the Onyx community`,
+          location: undefined,
+          isActive: true,
+          phone: (user as any).phone, // Add phone field
+          dateOfBirth: undefined,
+          gender: undefined,
+          addresses: [],
+          preferences: {
+            privacy: 'public' as const,
+            notifications: true,
+            theme: 'light' as const,
+            newsletter: true,
+            smsUpdates: true,
+            emailUpdates: true,
+            pushNotifications: true,
+          },
+          stats: {
+            postsCount: 0,
+            followersCount: 0,
+            followingCount: 0,
+            loyaltyPoints: 0,
+            totalOrders: 0,
+            totalSpent: 0,
+          },
+          joinedAt: new Date(),
+          lastActive: new Date(),
+        };
+        
+        const createResponse = await databaseService.createUser(dbUser);
+        if (createResponse.success) {
+          console.log('AuthContext: Created user in database successfully:', user.name);
+        } else {
+          console.error('AuthContext: Failed to create user:', createResponse.error);
+        }
+      } else {
+        console.log('AuthContext: User already exists in database:', user.name);
+      }
+    } catch (error) {
+      console.error('AuthContext: Failed to create user in database:', error);
+    }
+  };
+
   // Restore user session on app start
   useEffect(() => {
     const restoreUser = async () => {
@@ -89,6 +145,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             initials: 'CL',
             avatar: 'https://ui-avatars.com/api/?name=Coffee+Lover&background=000&color=fff&size=100',
           };
+          
+          // Ensure user exists in database
+          await createUserInDatabase(demoUser);
+          
           await AsyncStorage.setItem('bb-auth', JSON.stringify(demoUser));
           dispatch({ type: 'RESTORE_USER', payload: demoUser });
         }
@@ -102,7 +162,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   // Login function (will be replaced with real Azure AD B2C)
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string, userData?: any) => {
     dispatch({ type: 'LOGIN_START' });
     
     try {
@@ -111,12 +171,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
       
       if (email && password) {
+        // Use userData if provided (from our new login form), otherwise extract from email
         const user: User = {
-          id: '1',
-          name: email.split('@')[0],
+          id: userData?.id || `user_${Date.now()}`,
+          name: userData?.name || email.split('@')[0],
           email: email,
-          initials: email.charAt(0).toUpperCase(),
+          initials: userData?.initials || userData?.name?.charAt(0).toUpperCase() || email.charAt(0).toUpperCase(),
+          avatar: userData?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(userData?.name || email.split('@')[0])}&background=1877f2&color=fff&size=100`,
         };
+        
+        console.log('Creating user with data:', user);
+        
+        // Create user in database
+        await createUserInDatabase(user);
         
         await AsyncStorage.setItem('bb-auth', JSON.stringify(user));
         dispatch({ type: 'LOGIN_SUCCESS', payload: user });
@@ -141,6 +208,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         initials: 'CL',
         avatar: 'https://ui-avatars.com/api/?name=Coffee+Lover&background=000&color=fff&size=100',
       };
+      
+      // Ensure user exists in database
+      await createUserInDatabase(demoUser);
       
       await AsyncStorage.setItem('bb-auth', JSON.stringify(demoUser));
       dispatch({ type: 'LOGIN_SUCCESS', payload: demoUser });

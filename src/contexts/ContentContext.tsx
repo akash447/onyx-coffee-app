@@ -4,6 +4,7 @@ export interface ContentData {
   homepage: {
     brandName: string;
     bannerImage: string;
+    productHeroGif: string;
   };
   product: {
     sectionTitle: string;
@@ -60,6 +61,7 @@ const defaultContentData: ContentData = {
   homepage: {
     brandName: 'Onyx Coffee',
     bannerImage: 'https://images.unsplash.com/photo-1447933601403-0c6688de566e?w=1200',
+    productHeroGif: 'https://media.giphy.com/media/3o6ZtpRoYe9wbyfcBi/giphy.gif',
   },
   product: {
     sectionTitle: 'Coffee Products',
@@ -129,7 +131,7 @@ export const ContentProvider: React.FC<ContentProviderProps> = ({ children }) =>
           }
         }
       } catch (apiError) {
-        console.log('API not available, falling back to localStorage:', apiError.message);
+        console.log('API not available, falling back to localStorage:', apiError instanceof Error ? apiError.message : 'Unknown error');
       }
       
       // Fallback to localStorage
@@ -177,7 +179,7 @@ export const ContentProvider: React.FC<ContentProviderProps> = ({ children }) =>
           console.error('API save failed:', response.statusText);
         }
       } catch (apiError) {
-        console.log('API not available, saving to localStorage only:', apiError.message);
+        console.log('API not available, saving to localStorage only:', apiError instanceof Error ? apiError.message : 'Unknown error');
       }
       
       // Always save to localStorage as backup

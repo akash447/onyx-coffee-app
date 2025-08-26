@@ -16,6 +16,15 @@ export interface ReportReason {
   timestamp: Date;
 }
 
+export interface MediaAttachment {
+  id: string;
+  type: 'image' | 'video';
+  url: string;
+  thumbnail?: string; // For videos
+  alt?: string;
+  size?: number; // File size in bytes
+}
+
 export interface UserStory {
   id: string;
   userId: string;
@@ -27,7 +36,7 @@ export interface UserStory {
   type: 'story' | 'review';
   productId?: string; // For product reviews
   productName?: string; // For product reviews
-  images?: string[]; // Optional images
+  media: MediaAttachment[]; // Photos and videos
   likes: number;
   likedBy: string[]; // User IDs who liked this story
   comments: Comment[];
@@ -38,6 +47,8 @@ export interface UserStory {
   isReported: boolean;
   isLive: boolean; // For live posts
   tags?: string[]; // Optional tags like #coffee, #brewing, etc.
+  location?: string; // Optional location
+  feeling?: string; // Optional feeling/activity
 }
 
 export interface CreateUserStoryRequest {
@@ -45,9 +56,12 @@ export interface CreateUserStoryRequest {
   rating?: number;
   type: 'story' | 'review';
   productId?: string;
-  images?: string[];
+  media?: MediaAttachment[];
   tags?: string[];
   isLive?: boolean;
+  location?: string;
+  feeling?: string;
+  privacy?: 'public' | 'friends' | 'private';
 }
 
 export interface UserStoryFilters {

@@ -150,6 +150,28 @@ const ContentController: React.FC = () => {
           </View>
         )}
       </View>
+
+      <View style={styles.contentGroup}>
+        <Text style={styles.groupTitle}>🎬 Product Hero GIF</Text>
+        <Text style={styles.groupDescription}>Animated GIF shown in "Product For You" section to attract user attention</Text>
+        
+        {renderInputField('homepage', 'productHeroGif', 'Product Hero GIF URL', 'https://example.com/coffee-animation.gif')}
+
+        {/* GIF Preview */}
+        {contentData.homepage.productHeroGif && (
+          <View style={styles.imagePreview}>
+            <Text style={styles.previewLabel}>Current Product Hero GIF:</Text>
+            <Image 
+              source={{ uri: contentData.homepage.productHeroGif }} 
+              style={styles.gifPreview}
+              resizeMode="cover"
+            />
+            <Text style={styles.gifNote}>
+              💡 This GIF will appear in the "Products For You" section to grab user attention
+            </Text>
+          </View>
+        )}
+      </View>
     </View>
   );
 
@@ -172,6 +194,28 @@ const ContentController: React.FC = () => {
         
         {renderInputField('product', 'chatbotWelcome', 'Chatbot Title', 'Welcome title for chatbot')}
         {renderInputField('product', 'chatbotSubtitle', 'Chatbot Description', 'Description text for chatbot', true, 3)}
+      </View>
+
+      <View style={styles.contentGroup}>
+        <Text style={styles.groupTitle}>🎬 Personalized GIF</Text>
+        <Text style={styles.groupDescription}>Animated GIF shown in "Product For You" section when user gets recommendation</Text>
+        
+        {renderInputField('product', 'personalizedGif', 'Personalized GIF URL', 'https://media.giphy.com/media/3o7TKqnN349PBUtGFO/giphy.gif')}
+
+        {/* GIF Preview */}
+        {contentData.product.personalizedGif && (
+          <View style={styles.imagePreview}>
+            <Text style={styles.previewLabel}>Current Personalized GIF:</Text>
+            <Image 
+              source={{ uri: contentData.product.personalizedGif }} 
+              style={styles.gifPreview}
+              resizeMode="cover"
+            />
+            <Text style={styles.gifNote}>
+              💡 This GIF appears in the Product For You section when users get their personalized recommendation
+            </Text>
+          </View>
+        )}
       </View>
     </View>
   );
@@ -262,6 +306,22 @@ const ContentController: React.FC = () => {
         </View>
       </View>
       <Text style={styles.previewDescription}>This is how your homepage banner appears to visitors</Text>
+      
+      {/* Product Hero GIF Preview */}
+      {contentData.homepage.productHeroGif && (
+        <View style={styles.heroGifPreviewContainer}>
+          <Text style={styles.heroGifTitle}>Products For You</Text>
+          <View style={styles.heroGifPreview}>
+            <Image 
+              source={{ uri: contentData.homepage.productHeroGif }} 
+              style={styles.heroGifImage}
+              resizeMode="cover"
+            />
+            <Text style={styles.heroGifCaption}>🎬 Hero GIF Animation</Text>
+          </View>
+          <Text style={styles.previewDescription}>This GIF will catch user attention in the Products section</Text>
+        </View>
+      )}
     </View>
   );
 
@@ -579,8 +639,18 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 120,
     borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#d1d5db',
+  },
+  gifPreview: {
+    width: '100%',
+    height: 150,
+    borderRadius: 8,
+  },
+  gifNote: {
+    ...Typography.caption,
+    color: '#f39c12',
+    fontStyle: 'italic',
+    marginTop: 8,
+    textAlign: 'center',
   },
   previewContainer: {
     flex: 1,
@@ -657,6 +727,38 @@ const styles = StyleSheet.create({
   brandTextPreview: {
     color: 'white',
     fontSize: 14,
+    fontWeight: '600',
+  },
+  // Hero GIF Preview Styles
+  heroGifPreviewContainer: {
+    marginTop: 20,
+    padding: 16,
+    backgroundColor: '#f8f9fa',
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#f39c12',
+  },
+  heroGifTitle: {
+    ...Typography.h4,
+    color: '#000',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  heroGifPreview: {
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  heroGifImage: {
+    width: 200,
+    height: 150,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    marginBottom: 8,
+  },
+  heroGifCaption: {
+    ...Typography.caption,
+    color: '#f39c12',
     fontWeight: '600',
   },
   // Product Preview Styles

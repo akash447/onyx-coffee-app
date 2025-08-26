@@ -10,11 +10,14 @@ import {
   TextInput,
   Modal,
   ScrollView,
+  Dimensions,
 } from 'react-native';
 import { UserStory } from '../types/UserStory';
 import { useUserStories } from '../contexts/UserStoriesContext';
 import { useAuth } from '../contexts/AuthContext';
 import { Typography, FontConfig } from '../utils/fonts';
+
+const { width: screenWidth } = Dimensions.get('window');
 
 interface UserStoryCardProps {
   story: UserStory;
@@ -41,7 +44,8 @@ const UserStoryCard: React.FC<UserStoryCardProps> = ({
     deleteComment,
     reshareStory, 
     unreshareStory, 
-    reportStory 
+    reportStory,
+    updateStory 
   } = useUserStories();
   const { user } = useAuth();
   const [imageError, setImageError] = useState(false);
@@ -50,6 +54,13 @@ const UserStoryCard: React.FC<UserStoryCardProps> = ({
   const [showMenu, setShowMenu] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportReason, setReportReason] = useState('');
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editContent, setEditContent] = useState(story.content);
+  const [editLocation, setEditLocation] = useState(story.location || '');
+  const [editFeeling, setEditFeeling] = useState(story.feeling || '');
+  const [editTags, setEditTags] = useState((story.tags || []).join(', '));
+  const [editRating, setEditRating] = useState(story.rating || 0);
+  const [editLoading, setEditLoading] = useState(false);
 
   const isLikedByUser = user ? (story.likedBy || []).includes(user.id) : false;
   const isResharedByUser = user ? (story.resharedBy || []).includes(user.id) : false;
@@ -92,7 +103,16 @@ const UserStoryCard: React.FC<UserStoryCardProps> = ({
         { 
           text: 'Delete', 
           style: 'destructive', 
-          onPress: () => deleteStory(story.id)
+          onPress: async () => {
+            try {
+              console.log('Deleting story:', story.id);
+              await deleteStory(story.id);
+              console.log('Story deleted successfully');
+            } catch (error) {
+              console.error('Failed to delete story:', error);
+              Alert.alert('Error', 'Failed to delete post. Please try again.');
+            }
+          }
         }
       ]
     );
@@ -129,6 +149,60 @@ const UserStoryCard: React.FC<UserStoryCardProps> = ({
       case 'delete':
         handleDelete();
         break;
+      case 'edit':
+        setEditContent(story.content);
+        setEditLocation(story.location || '');
+        setEditFeeling(story.feeling || '');
+        setEditTags((story.tags || []).join(', '));
+        setEditRating(story.rating || 0);
+        setShowEditModal(true);
+        break;
+    }
+  };
+
+  const handleEditPost = async () => {
+    if (!editContent.trim() && !editLocation.trim() && !editFeeling.trim()) {
+      Alert.alert('Content Required', 'Please add some content to your post');
+      return;
+    }
+    
+    setEditLoading(true);
+    
+    try {
+      console.log('Starting edit process...');
+      
+      const updates: Partial<UserStory> = {
+        content: editContent.trim(),
+        location: editLocation.trim() || undefined,
+        feeling: editFeeling.trim() || undefined,
+        tags: editTags
+          .split(',')
+          .map(tag => tag.trim())
+          .filter(tag => tag.length > 0)
+          .map(tag => tag.startsWith('#') ? tag : `#${tag}`),
+      };
+      
+      // Only update rating for review posts
+      if (story.type === 'review') {
+        updates.rating = editRating;
+      }
+      
+      console.log('Updating story with:', updates);
+      await updateStory(story.id, updates);
+      
+      setShowEditModal(false);
+      console.log('Edit completed successfully');
+      
+      // Show success alert
+      setTimeout(() => {
+        Alert.alert('Success', 'Post updated successfully!');
+      }, 100);
+      
+    } catch (error) {
+      console.error('Failed to edit post:', error);
+      Alert.alert('Error', 'Failed to edit post. Please try again.');
+    } finally {
+      setEditLoading(false);
     }
   };
 
@@ -144,6 +218,107 @@ const UserStoryCard: React.FC<UserStoryCardProps> = ({
         ⭐
       </Text>
     ));
+  };
+
+  const renderMediaAttachments = () => {
+    if (!story.media || story.media.length === 0) return null;
+
+    const mediaCount = story.media.length;
+    
+    if (mediaCount === 1) {
+      const media = story.media[0];
+      return (
+        <View style={styles.singleMediaContainer}>
+          <Image
+            source={{ uri: media.url }}
+            style={styles.singleMedia}
+            resizeMode="cover"
+          />
+          {media.type === 'video' && (
+            <View style={styles.videoPlayButton}>
+              <Text style={styles.playIcon}>▶️</Text>
+            </View>
+          )}
+        </View>
+      );
+    }
+
+    if (mediaCount === 2) {
+      return (
+        <View style={styles.doubleMediaContainer}>
+          {story.media.slice(0, 2).map((media, index) => (
+            <View key={media.id} style={styles.doubleMediaItem}>
+              <Image
+                source={{ uri: media.url }}
+                style={styles.doubleMedia}
+                resizeMode="cover"
+              />
+              {media.type === 'video' && (
+                <View style={styles.videoPlayButton}>
+                  <Text style={styles.playIcon}>▶️</Text>
+                </View>
+              )}
+            </View>
+          ))}
+        </View>
+      );
+    }
+
+    return (
+      <View style={styles.multiMediaContainer}>
+        <View style={styles.mainMediaContainer}>
+          <Image
+            source={{ uri: story.media[0].url }}
+            style={styles.mainMedia}
+            resizeMode="cover"
+          />
+          {story.media[0].type === 'video' && (
+            <View style={styles.videoPlayButton}>
+              <Text style={styles.playIcon}>▶️</Text>
+            </View>
+          )}
+        </View>
+        <View style={styles.sideMediaContainer}>
+          {story.media.slice(1, 3).map((media, index) => (
+            <View key={media.id} style={styles.sideMediaItem}>
+              <Image
+                source={{ uri: media.url }}
+                style={styles.sideMedia}
+                resizeMode="cover"
+              />
+              {media.type === 'video' && (
+                <View style={styles.videoPlayButton}>
+                  <Text style={styles.playIcon}>▶️</Text>
+                </View>
+              )}
+              {index === 1 && mediaCount > 3 && (
+                <View style={styles.morePhotosOverlay}>
+                  <Text style={styles.morePhotosText}>+{mediaCount - 3}</Text>
+                </View>
+              )}
+            </View>
+          ))}
+        </View>
+      </View>
+    );
+  };
+
+  const renderLocationFeeling = () => {
+    if (!story.location && !story.feeling) return null;
+
+    return (
+      <View style={styles.locationFeelingContainer}>
+        {story.feeling && (
+          <Text style={styles.feelingText}>is feeling {story.feeling}</Text>
+        )}
+        {story.location && (
+          <>
+            {story.feeling && <Text style={styles.separator}> — </Text>}
+            <Text style={styles.locationText}>at {story.location}</Text>
+          </>
+        )}
+      </View>
+    );
   };
 
   return (
@@ -165,7 +340,10 @@ const UserStoryCard: React.FC<UserStoryCardProps> = ({
             </View>
           )}
           <View style={styles.userDetails}>
-            <Text style={styles.userName}>{story.userName}</Text>
+            <View style={styles.userNameContainer}>
+              <Text style={styles.userName}>{story.userName}</Text>
+              {renderLocationFeeling()}
+            </View>
             <View style={styles.metaInfo}>
               <Text style={styles.timestamp}>{formatTimeAgo(story.timestamp)}</Text>
               {story.isLive && (
@@ -176,6 +354,8 @@ const UserStoryCard: React.FC<UserStoryCardProps> = ({
                   </View>
                 </>
               )}
+              <Text style={styles.metaDot}>•</Text>
+              <Text style={styles.privacy}>🌍</Text>
             </View>
           </View>
         </View>
@@ -186,7 +366,12 @@ const UserStoryCard: React.FC<UserStoryCardProps> = ({
       </View>
 
       {/* Content */}
-      <Text style={styles.content}>{story.content}</Text>
+      {story.content.trim() && (
+        <Text style={styles.content}>{story.content}</Text>
+      )}
+
+      {/* Media Attachments */}
+      {renderMediaAttachments()}
 
       {/* Product Info & Rating */}
       {story.type === 'review' && story.productName && showProduct && (
@@ -218,44 +403,73 @@ const UserStoryCard: React.FC<UserStoryCardProps> = ({
         </View>
       )}
 
+      {/* Action Stats */}
+      {((story.likes || 0) > 0 || (story.commentCount || 0) > 0 || (story.reshares || 0) > 0) && (
+        <View style={styles.actionStats}>
+          <View style={styles.statsLeft}>
+            {(story.likes || 0) > 0 && (
+              <View style={styles.likesStats}>
+                <View style={styles.reactionIcons}>
+                  <View style={[styles.reactionIcon, styles.likeIcon]}>
+                    <Text style={styles.reactionEmoji}>👍</Text>
+                  </View>
+                  <View style={[styles.reactionIcon, styles.loveIcon]}>
+                    <Text style={styles.reactionEmoji}>❤️</Text>
+                  </View>
+                </View>
+                <Text style={styles.statsText}>{story.likes}</Text>
+              </View>
+            )}
+          </View>
+          <View style={styles.statsRight}>
+            {(story.commentCount || 0) > 0 && (
+              <Text style={styles.statsText}>{story.commentCount} comments</Text>
+            )}
+            {(story.reshares || 0) > 0 && (
+              <>
+                {(story.commentCount || 0) > 0 && <Text style={styles.statsDot}> • </Text>}
+                <Text style={styles.statsText}>{story.reshares} shares</Text>
+              </>
+            )}
+          </View>
+        </View>
+      )}
+
       {/* Action Buttons */}
-      <View style={styles.actionButtons}>
-        <Pressable
-          style={[styles.actionButton, isLikedByUser && styles.likedButton]}
-          onPress={handleLike}
-        >
-          <Text style={[styles.actionIcon, isLikedByUser && styles.likedIcon]}>
-            {isLikedByUser ? '❤️' : '🤍'}
-          </Text>
-          <Text style={[styles.actionText, isLikedByUser && styles.likedText]}>
-            {story.likes || 0}
-          </Text>
-        </Pressable>
+      <View style={styles.actionButtonsContainer}>
+        <View style={styles.actionButtonsDivider} />
+        <View style={styles.actionButtons}>
+          <Pressable
+            style={styles.facebookActionButton}
+            onPress={handleLike}
+          >
+            <Text style={[styles.facebookActionIcon, isLikedByUser && styles.likedActionIcon]}>
+              {isLikedByUser ? '👍' : '👍'}
+            </Text>
+            <Text style={[styles.facebookActionText, isLikedByUser && styles.likedActionText]}>
+              Like
+            </Text>
+          </Pressable>
 
-        <Pressable
-          style={styles.actionButton}
-          onPress={() => setShowComments(!showComments)}
-        >
-          <Text style={styles.actionIcon}>💬</Text>
-          <Text style={styles.actionText}>{story.commentCount || 0}</Text>
-        </Pressable>
+          <Pressable
+            style={styles.facebookActionButton}
+            onPress={() => setShowComments(!showComments)}
+          >
+            <Text style={styles.facebookActionIcon}>💬</Text>
+            <Text style={styles.facebookActionText}>Comment</Text>
+          </Pressable>
 
-        <Pressable
-          style={[styles.actionButton, isResharedByUser && styles.resharedButton]}
-          onPress={handleReshare}
-        >
-          <Text style={[styles.actionIcon, isResharedByUser && styles.resharedIcon]}>
-            🔄
-          </Text>
-          <Text style={[styles.actionText, isResharedByUser && styles.resharedText]}>
-            {story.reshares || 0}
-          </Text>
-        </Pressable>
-
-        <View style={styles.storyType}>
-          <Text style={styles.storyTypeText}>
-            {story.type === 'review' ? '📝 Review' : '💬 Story'}
-          </Text>
+          <Pressable
+            style={styles.facebookActionButton}
+            onPress={handleReshare}
+          >
+            <Text style={[styles.facebookActionIcon, isResharedByUser && styles.resharedActionIcon]}>
+              ↗️
+            </Text>
+            <Text style={[styles.facebookActionText, isResharedByUser && styles.resharedActionText]}>
+              Share
+            </Text>
+          </Pressable>
         </View>
       </View>
 
@@ -334,9 +548,14 @@ const UserStoryCard: React.FC<UserStoryCardProps> = ({
         <Pressable style={styles.modalOverlay} onPress={() => setShowMenu(false)}>
           <View style={styles.menuModal}>
             {isOwnPost ? (
-              <Pressable style={styles.menuItem} onPress={() => handleMenuAction('delete')}>
-                <Text style={[styles.menuItemText, styles.deleteMenuText]}>🗑️ Delete Post</Text>
-              </Pressable>
+              <>
+                <Pressable style={styles.menuItem} onPress={() => handleMenuAction('edit')}>
+                  <Text style={styles.menuItemText}>✏️ Edit Post</Text>
+                </Pressable>
+                <Pressable style={styles.menuItem} onPress={() => handleMenuAction('delete')}>
+                  <Text style={[styles.menuItemText, styles.deleteMenuText]}>🗑️ Delete Post</Text>
+                </Pressable>
+              </>
             ) : (
               <Pressable style={styles.menuItem} onPress={() => handleMenuAction('report')}>
                 <Text style={styles.menuItemText}>🚩 Report Post</Text>
@@ -401,6 +620,162 @@ const UserStoryCard: React.FC<UserStoryCardProps> = ({
           </View>
         </View>
       </Modal>
+
+      {/* Edit Post Modal */}
+      <Modal
+        visible={showEditModal}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setShowEditModal(false)}
+      >
+        <View style={styles.editContainer}>
+          {/* Modern Header */}
+          <View style={styles.editModernHeader}>
+            <Pressable onPress={() => setShowEditModal(false)} style={styles.editCloseButton}>
+              <Text style={styles.editCloseButtonText}>×</Text>
+            </Pressable>
+            <Text style={styles.editHeaderTitle}>Edit {story.type === 'review' ? 'Review' : 'Post'}</Text>
+            <Pressable 
+              style={[styles.editUpdateButton, editLoading && styles.editUpdateButtonDisabled]} 
+              onPress={handleEditPost}
+              disabled={editLoading}
+            >
+              <Text style={[styles.editUpdateButtonText, editLoading && styles.editUpdateButtonTextDisabled]}>
+                {editLoading ? 'Updating...' : 'Update'}
+              </Text>
+            </Pressable>
+          </View>
+
+          {/* User Profile Section */}
+          <View style={styles.editUserSection}>
+            {user?.avatar ? (
+              <Image source={{ uri: user.avatar }} style={styles.editUserAvatar} />
+            ) : (
+              <View style={styles.editUserAvatarPlaceholder}>
+                <Text style={styles.editUserAvatarText}>
+                  {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+                </Text>
+              </View>
+            )}
+            <View style={styles.editUserInfo}>
+              <Text style={styles.editUserName}>{user?.name || 'Coffee Lover'}</Text>
+              <Text style={styles.editPostType}>
+                {story.type === 'review' ? '⭐ Editing Review' : '💬 Editing Story'}
+              </Text>
+            </View>
+          </View>
+
+          <ScrollView style={styles.editContent} showsVerticalScrollIndicator={false}>
+            {/* Main Content Input */}
+            <View style={styles.editContentSection}>
+              <TextInput
+                style={styles.editMainInput}
+                placeholder={story.type === 'review' ? "Share your review..." : `What's brewing, ${user?.name || 'Coffee Lover'}?`}
+                value={editContent}
+                onChangeText={setEditContent}
+                multiline
+                textAlignVertical="top"
+              />
+            </View>
+
+            {/* Media Preview (Read-only) */}
+            {story.media && story.media.length > 0 && (
+              <View style={styles.editMediaPreviewSection}>
+                <Text style={styles.editMediaSectionTitle}>Photos & Videos</Text>
+                <Text style={styles.editMediaNote}>Media cannot be edited after posting</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                  {story.media.map((media, index) => (
+                    <View key={media.id} style={styles.editMediaItem}>
+                      <Image
+                        source={{ uri: media.url }}
+                        style={styles.editMediaImage}
+                        resizeMode="cover"
+                      />
+                    </View>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+
+            {/* Product Review Section */}
+            {story.type === 'review' && (
+              <View style={styles.editReviewSection}>
+                <Text style={styles.editReviewSectionTitle}>Review Details</Text>
+                
+                {/* Product Info (Read-only) */}
+                {story.productName && (
+                  <View style={styles.editProductInfo}>
+                    <Text style={styles.editProductLabel}>Product:</Text>
+                    <Text style={styles.editProductName}>{story.productName}</Text>
+                  </View>
+                )}
+
+                {/* Rating Section */}
+                <View style={styles.editRatingSection}>
+                  <Text style={styles.editRatingLabel}>Your Rating:</Text>
+                  <View style={styles.editStarsContainer}>
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Pressable
+                        key={star}
+                        onPress={() => setEditRating(star)}
+                        style={styles.editStarButton}
+                      >
+                        <Text
+                          style={[
+                            styles.editReviewStar,
+                            { color: star <= editRating ? '#FFD700' : '#ddd' }
+                          ]}
+                        >
+                          ⭐
+                        </Text>
+                      </Pressable>
+                    ))}
+                    <Text style={styles.editRatingText}>
+                      {editRating > 0 ? `${editRating}/5` : 'Tap to rate'}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            )}
+
+            {/* Additional Options */}
+            <View style={styles.editOptionsContainer}>
+              {/* Location */}
+              <View style={styles.editOptionRow}>
+                <Text style={styles.editOptionLabel}>📍</Text>
+                <TextInput
+                  style={styles.editOptionInput}
+                  placeholder="Add location"
+                  value={editLocation}
+                  onChangeText={setEditLocation}
+                />
+              </View>
+
+              {/* Feeling */}
+              <View style={styles.editOptionRow}>
+                <Text style={styles.editOptionLabel}>😊</Text>
+                <TextInput
+                  style={styles.editOptionInput}
+                  placeholder="How are you feeling?"
+                  value={editFeeling}
+                  onChangeText={setEditFeeling}
+                />
+              </View>
+
+              {/* Tags */}
+              <View style={styles.editOptionRow}>
+                <Text style={styles.editOptionLabel}>#</Text>
+                <TextInput
+                  style={styles.editOptionInput}
+                  placeholder="Add tags (coffee, morning, etc.)"
+                  value={editTags}
+                  onChangeText={setEditTags}
+                />
+              </View>
+            </View>
+          </ScrollView>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -408,22 +783,20 @@ const UserStoryCard: React.FC<UserStoryCardProps> = ({
 const styles = StyleSheet.create({
   container: {
     backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
+    marginBottom: 8,
     ...Platform.select({
       web: {
-        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+        boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)',
       },
       default: {
         shadowColor: '#000',
         shadowOffset: {
           width: 0,
-          height: 2,
+          height: 1,
         },
         shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3,
+        shadowRadius: 2,
+        elevation: 2,
       },
     }),
   },
@@ -433,13 +806,14 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    padding: 16,
+    paddingBottom: 0,
   },
   userInfo: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     flex: 1,
   },
   avatar: {
@@ -452,7 +826,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#000',
+    backgroundColor: '#1877f2',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -465,22 +839,48 @@ const styles = StyleSheet.create({
   userDetails: {
     flex: 1,
   },
-  userName: {
-    ...Typography.h5,
-    color: '#000',
+  userNameContainer: {
     marginBottom: 2,
+  },
+  userName: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#050505',
+    lineHeight: 20,
+  },
+  locationFeelingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    marginTop: 1,
+  },
+  feelingText: {
+    fontSize: 13,
+    color: '#65676b',
+  },
+  locationText: {
+    fontSize: 13,
+    color: '#65676b',
+  },
+  separator: {
+    fontSize: 13,
+    color: '#65676b',
   },
   metaInfo: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   timestamp: {
-    ...Typography.caption,
-    color: '#666',
+    fontSize: 13,
+    color: '#65676b',
   },
   metaDot: {
-    color: '#666',
-    marginHorizontal: 6,
+    color: '#65676b',
+    marginHorizontal: 4,
+    fontSize: 13,
+  },
+  privacy: {
+    fontSize: 11,
   },
   liveIndicator: {
     backgroundColor: '#e74c3c',
@@ -494,29 +894,210 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   menuButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#f1f3f4',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'transparent',
     justifyContent: 'center',
     alignItems: 'center',
   },
   menuButtonText: {
-    fontSize: 18,
-    color: '#666',
-    fontWeight: '600',
+    fontSize: 20,
+    color: '#65676b',
+    fontWeight: '400',
   },
   content: {
-    ...Typography.body,
-    color: '#000',
+    fontSize: 14,
+    color: '#050505',
     lineHeight: 20,
-    marginBottom: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  // Media Styles
+  singleMediaContainer: {
+    position: 'relative',
+    marginTop: 12,
+    alignSelf: 'flex-start',
+  },
+  singleMedia: {
+    width: 200,
+    height: 133, // 3:2 aspect ratio (200 * 2/3)
+    backgroundColor: '#f0f2f5',
+    borderRadius: 8,
+  },
+  doubleMediaContainer: {
+    flexDirection: 'row',
+    marginTop: 12,
+    gap: 2,
+    alignSelf: 'flex-start',
+  },
+  doubleMediaItem: {
+    position: 'relative',
+  },
+  doubleMedia: {
+    width: 99, // (200-2)/2 for gap
+    height: 66, // 3:2 aspect ratio
+    backgroundColor: '#f0f2f5',
+    borderRadius: 6,
+  },
+  multiMediaContainer: {
+    flexDirection: 'row',
+    marginTop: 12,
+    gap: 2,
+    alignSelf: 'flex-start',
+  },
+  mainMediaContainer: {
+    position: 'relative',
+  },
+  mainMedia: {
+    width: 133, // 200 * 2/3 for main image
+    height: 89, // 3:2 aspect ratio
+    backgroundColor: '#f0f2f5',
+    borderRadius: 6,
+  },
+  sideMediaContainer: {
+    gap: 2,
+  },
+  sideMediaItem: {
+    position: 'relative',
+  },
+  sideMedia: {
+    width: 65, // (200-133-2)/1 for remaining space
+    height: 43, // 3:2 aspect ratio
+    backgroundColor: '#f0f2f5',
+    borderRadius: 4,
+  },
+  videoPlayButton: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: [{ translateX: -25 }, { translateY: -25 }],
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  playIcon: {
+    fontSize: 20,
+  },
+  morePhotosOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  morePhotosText: {
+    color: '#fff',
+    fontSize: 24,
+    fontWeight: '600',
+  },
+  // Action Stats
+  actionStats: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  statsLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  likesStats: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  reactionIcons: {
+    flexDirection: 'row',
+    marginRight: 6,
+  },
+  reactionIcon: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: -2,
+    borderWidth: 1,
+    borderColor: '#fff',
+  },
+  likeIcon: {
+    backgroundColor: '#1877f2',
+  },
+  loveIcon: {
+    backgroundColor: '#e91e63',
+  },
+  reactionEmoji: {
+    fontSize: 10,
+  },
+  statsRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  statsText: {
+    fontSize: 13,
+    color: '#65676b',
+  },
+  statsDot: {
+    fontSize: 13,
+    color: '#65676b',
+  },
+  // Action Buttons
+  actionButtonsContainer: {
+    marginTop: 8,
+  },
+  actionButtonsDivider: {
+    height: 1,
+    backgroundColor: '#dadde1',
+    marginHorizontal: 16,
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    paddingVertical: 4,
+  },
+  facebookActionButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 8,
+    borderRadius: 6,
+  },
+  facebookActionIcon: {
+    fontSize: 16,
+    marginRight: 6,
+    color: '#65676b',
+  },
+  likedActionIcon: {
+    color: '#1877f2',
+  },
+  resharedActionIcon: {
+    color: '#42b883',
+  },
+  facebookActionText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#65676b',
+  },
+  likedActionText: {
+    color: '#1877f2',
+  },
+  resharedActionText: {
+    color: '#42b883',
   },
   productInfo: {
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#f0f2f5',
     borderRadius: 8,
-    padding: 12,
-    marginBottom: 12,
+    padding: 16,
+    margin: 16,
+    marginTop: 0,
   },
   productHeader: {
     marginBottom: 8,
@@ -547,172 +1128,126 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 6,
-    marginBottom: 12,
+    paddingHorizontal: 16,
+    paddingBottom: 12,
   },
   tag: {
-    backgroundColor: '#e3f2fd',
-    borderRadius: 12,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    backgroundColor: '#e7f3ff',
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
   },
   tagText: {
-    fontSize: 10,
-    color: '#1565c0',
-    fontWeight: '500',
-  },
-  actionButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: 8,
-  },
-  actionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 16,
-    backgroundColor: '#f1f3f4',
-  },
-  likedButton: {
-    backgroundColor: '#ffebee',
-  },
-  resharedButton: {
-    backgroundColor: '#e8f5e8',
-  },
-  actionIcon: {
-    fontSize: 14,
-    marginRight: 4,
-  },
-  likedIcon: {
-    // Styles for liked state
-  },
-  resharedIcon: {
-    // Styles for reshared state
-  },
-  actionText: {
-    ...Typography.caption,
-    color: '#666',
-  },
-  likedText: {
-    color: '#e74c3c',
-  },
-  resharedText: {
-    color: '#27ae60',
-  },
-  storyType: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    backgroundColor: '#f1f3f4',
-  },
-  storyTypeText: {
-    ...Typography.caption,
-    color: '#666',
+    fontSize: 13,
+    color: '#1877f2',
+    fontWeight: '600',
   },
   // Comments Section Styles
   commentsSection: {
-    marginTop: 12,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
+    paddingTop: 8,
   },
   addCommentContainer: {
     flexDirection: 'row',
-    alignItems: 'flex-end',
-    marginBottom: 12,
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
     gap: 8,
   },
   commentInput: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#f0f2f5',
     borderRadius: 20,
-    paddingHorizontal: 16,
+    paddingHorizontal: 12,
     paddingVertical: 8,
+    fontSize: 13,
     maxHeight: 80,
-    fontSize: 14,
-    ...FontConfig.regular,
+    color: '#050505',
   },
   commentButton: {
-    backgroundColor: '#000',
-    borderRadius: 16,
+    backgroundColor: '#1877f2',
+    borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 8,
   },
   commentButtonDisabled: {
-    backgroundColor: '#ccc',
+    backgroundColor: '#dadde1',
   },
   commentButtonText: {
     color: '#fff',
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '600',
   },
   commentButtonTextDisabled: {
-    color: '#999',
+    color: '#bcc0c4',
   },
   commentContainer: {
-    marginBottom: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 4,
   },
   commentHeader: {
     flexDirection: 'row',
     alignItems: 'flex-start',
   },
   commentAvatar: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     marginRight: 8,
   },
   commentAvatarPlaceholder: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: '#000',
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#1877f2',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 8,
   },
   commentAvatarText: {
     color: '#fff',
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '600',
   },
   commentContent: {
     flex: 1,
   },
   commentMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 2,
+    backgroundColor: '#f0f2f5',
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginBottom: 4,
   },
   commentAuthor: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '600',
-    color: '#000',
+    color: '#050505',
+    marginBottom: 1,
   },
   commentTime: {
-    fontSize: 10,
-    color: '#999',
+    fontSize: 12,
+    color: '#65676b',
+    marginLeft: 8,
   },
   commentText: {
-    fontSize: 12,
-    color: '#333',
-    lineHeight: 16,
-    marginBottom: 4,
+    fontSize: 14,
+    color: '#050505',
+    lineHeight: 18,
   },
   commentActions: {
     flexDirection: 'row',
-    gap: 12,
+    gap: 16,
+    paddingLeft: 12,
   },
   commentLike: {
-    fontSize: 10,
-    color: '#666',
+    fontSize: 12,
+    color: '#65676b',
+    fontWeight: '600',
   },
   commentDelete: {
-    fontSize: 10,
-    color: '#e74c3c',
-    fontWeight: '500',
+    fontSize: 12,
+    color: '#65676b',
+    fontWeight: '600',
   },
   // Modal Styles
   modalOverlay: {
@@ -854,6 +1389,215 @@ const styles = StyleSheet.create({
   },
   reportButtonTextDisabled: {
     color: '#999',
+  },
+  // Edit Modal Styles (matching CreateUserStory design)
+  editContainer: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  editModernHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+    backgroundColor: '#fff',
+  },
+  editCloseButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#f0f2f5',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  editCloseButtonText: {
+    fontSize: 24,
+    color: '#65676b',
+    fontWeight: '300',
+  },
+  editHeaderTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#050505',
+  },
+  editUpdateButton: {
+    backgroundColor: '#1877f2',
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  editUpdateButtonDisabled: {
+    backgroundColor: '#dadde1',
+  },
+  editUpdateButtonText: {
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  editUpdateButtonTextDisabled: {
+    color: '#bcc0c4',
+  },
+  editUserSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+  },
+  editUserAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginRight: 12,
+  },
+  editUserAvatarPlaceholder: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#1877f2',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  editUserAvatarText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  editUserInfo: {
+    flex: 1,
+  },
+  editUserName: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#050505',
+    marginBottom: 2,
+  },
+  editPostType: {
+    fontSize: 13,
+    color: '#65676b',
+  },
+  editContent: {
+    flex: 1,
+  },
+  editContentSection: {
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+  },
+  editMainInput: {
+    fontSize: 16,
+    color: '#050505',
+    lineHeight: 20,
+    minHeight: 120,
+    textAlignVertical: 'top',
+  },
+  editMediaPreviewSection: {
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#e0e0e0',
+    paddingTop: 16,
+  },
+  editMediaSectionTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#050505',
+    marginBottom: 4,
+  },
+  editMediaNote: {
+    fontSize: 12,
+    color: '#65676b',
+    fontStyle: 'italic',
+    marginBottom: 12,
+  },
+  editMediaItem: {
+    position: 'relative',
+    marginRight: 12,
+  },
+  editMediaImage: {
+    width: 200,
+    height: 133,
+    borderRadius: 8,
+    backgroundColor: '#f0f2f5',
+  },
+  editReviewSection: {
+    backgroundColor: '#f8f9fa',
+    marginHorizontal: 16,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+  },
+  editReviewSectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#050505',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  editProductInfo: {
+    marginBottom: 16,
+  },
+  editProductLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#050505',
+    marginBottom: 4,
+  },
+  editProductName: {
+    fontSize: 16,
+    color: '#1877f2',
+    fontWeight: '500',
+  },
+  editRatingSection: {
+    alignItems: 'center',
+  },
+  editRatingLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#050505',
+    marginBottom: 8,
+  },
+  editStarsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  editStarButton: {
+    padding: 4,
+  },
+  editReviewStar: {
+    fontSize: 24,
+  },
+  editRatingText: {
+    marginLeft: 12,
+    fontSize: 14,
+    color: '#65676b',
+    fontWeight: '500',
+  },
+  editOptionsContainer: {
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+  },
+  editOptionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  editOptionLabel: {
+    fontSize: 18,
+    width: 30,
+    textAlign: 'center',
+  },
+  editOptionInput: {
+    flex: 1,
+    fontSize: 16,
+    color: '#050505',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    marginLeft: 12,
   },
 });
 

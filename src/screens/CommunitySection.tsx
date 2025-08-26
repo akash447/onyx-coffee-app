@@ -112,16 +112,39 @@ const CommunitySection: React.FC<CommunitySectionProps> = ({
     switch (selectedTab) {
       case 'stories':
         return (
-          <View style={styles.storiesContainer}>
-            <View style={styles.storiesHeader}>
-              <Text style={styles.storiesTitle}>Community Stories</Text>
-              <Pressable
-                style={styles.createButton}
-                onPress={() => setShowCreateStory(true)}
-              >
-                <Text style={styles.createButtonText}>+ Share Story</Text>
-              </Pressable>
+          <View style={styles.feedContainer}>
+            {/* Create Post Prompt */}
+            <View style={styles.createPostPrompt}>
+              <View style={styles.createPostContent}>
+                <View style={styles.createPostAvatar}>
+                  <Text style={styles.createPostAvatarText}>☕</Text>
+                </View>
+                <Pressable
+                  style={styles.createPostInput}
+                  onPress={() => setShowCreateStory(true)}
+                >
+                  <Text style={styles.createPostPlaceholder}>What's brewing in your cup today?</Text>
+                </Pressable>
+              </View>
+              <View style={styles.createPostActions}>
+                <Pressable 
+                  style={styles.createPostAction}
+                  onPress={() => setShowCreateStory(true)}
+                >
+                  <Text style={styles.createPostActionIcon}>📸</Text>
+                  <Text style={styles.createPostActionText}>Photo/Video</Text>
+                </Pressable>
+                <Pressable style={styles.createPostAction}>
+                  <Text style={styles.createPostActionIcon}>😊</Text>
+                  <Text style={styles.createPostActionText}>Feeling</Text>
+                </Pressable>
+                <Pressable style={styles.createPostAction}>
+                  <Text style={styles.createPostActionIcon}>📍</Text>
+                  <Text style={styles.createPostActionText}>Check in</Text>
+                </Pressable>
+              </View>
             </View>
+            
             <FlatList
               data={stories}
               keyExtractor={(item) => item.id}
@@ -129,7 +152,7 @@ const CommunitySection: React.FC<CommunitySectionProps> = ({
                 <UserStoryCard story={item} />
               )}
               showsVerticalScrollIndicator={false}
-              contentContainerStyle={styles.storiesList}
+              contentContainerStyle={styles.feedList}
             />
           </View>
         );
@@ -137,16 +160,20 @@ const CommunitySection: React.FC<CommunitySectionProps> = ({
       case 'live':
         const liveStories = getLiveStories();
         return (
-          <View style={styles.storiesContainer}>
-            <View style={styles.storiesHeader}>
-              <Text style={styles.storiesTitle}>🔴 Live Stories</Text>
+          <View style={styles.feedContainer}>
+            {/* Live Post Prompt */}
+            <View style={styles.livePostPrompt}>
+              <View style={styles.liveIndicatorBadge}>
+                <Text style={styles.liveIndicatorText}>🔴 LIVE</Text>
+              </View>
               <Pressable
-                style={styles.createButton}
+                style={styles.goLiveButton}
                 onPress={() => setShowCreateStory(true)}
               >
-                <Text style={styles.createButtonText}>+ Go Live</Text>
+                <Text style={styles.goLiveText}>Go Live</Text>
               </Pressable>
             </View>
+            
             {liveStories.length > 0 ? (
               <FlatList
                 data={liveStories}
@@ -155,12 +182,21 @@ const CommunitySection: React.FC<CommunitySectionProps> = ({
                   <UserStoryCard story={item} />
                 )}
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={styles.storiesList}
+                contentContainerStyle={styles.feedList}
               />
             ) : (
-              <View style={styles.emptyState}>
-                <Text style={styles.emptyTitle}>No Live Stories</Text>
-                <Text style={styles.emptyDescription}>Be the first to share what's happening right now!</Text>
+              <View style={styles.emptyLiveState}>
+                <View style={styles.emptyLiveIcon}>
+                  <Text style={styles.emptyLiveEmoji}>📹</Text>
+                </View>
+                <Text style={styles.emptyTitle}>No one is live right now</Text>
+                <Text style={styles.emptyDescription}>Be the first to share what's happening!</Text>
+                <Pressable 
+                  style={styles.emptyActionButton}
+                  onPress={() => setShowCreateStory(true)}
+                >
+                  <Text style={styles.emptyActionText}>Start Live Video</Text>
+                </Pressable>
               </View>
             )}
           </View>
@@ -302,81 +338,185 @@ const styles = StyleSheet.create({
   },
   tabContainer: {
     flexDirection: 'row',
+    backgroundColor: '#fff',
     paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 8,
+    paddingTop: 8,
+    paddingBottom: 0,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: '#dadde1',
   },
   tab: {
     paddingHorizontal: 16,
-    paddingVertical: 8,
-    marginRight: 8,
-    borderRadius: 20,
-    backgroundColor: '#f1f3f4',
+    paddingVertical: 12,
+    marginRight: 4,
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
+    backgroundColor: 'transparent',
   },
   activeTab: {
-    backgroundColor: '#000',
+    borderBottomColor: '#1877f2',
+    backgroundColor: 'transparent',
   },
   tabText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#666',
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#65676b',
   },
   activeTabText: {
-    color: '#fff',
+    color: '#1877f2',
   },
   overviewContainer: {
     flex: 1,
+    backgroundColor: '#f0f2f5',
     padding: 16,
   },
-  storiesContainer: {
+  feedContainer: {
     flex: 1,
-    padding: 16,
-  },
-  storiesHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  storiesTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#000',
+    backgroundColor: '#f0f2f5',
   },
   createButton: {
-    backgroundColor: '#000',
-    paddingHorizontal: 16,
+    backgroundColor: '#1877f2',
+    paddingHorizontal: 20,
     paddingVertical: 8,
     borderRadius: 20,
   },
   createButtonText: {
     color: '#fff',
-    fontSize: 14,
-    fontWeight: '500',
+    fontSize: 15,
+    fontWeight: '600',
   },
-  storiesList: {
+  feedList: {
     paddingBottom: 20,
   },
-  storiesPreview: {
-    marginVertical: 20,
+  // Create Post Prompt Styles
+  createPostPrompt: {
     backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
+    marginBottom: 8,
     ...Platform.select({
       web: {
-        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+        boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)',
       },
       default: {
         shadowColor: '#000',
-        shadowOffset: {
-          width: 0,
-          height: 2,
-        },
+        shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3,
+        shadowRadius: 2,
+        elevation: 2,
+      },
+    }),
+  },
+  createPostContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  createPostAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#1877f2',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  createPostAvatarText: {
+    fontSize: 16,
+  },
+  createPostInput: {
+    flex: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    backgroundColor: '#f0f2f5',
+    borderRadius: 20,
+    minHeight: 40,
+    justifyContent: 'center',
+  },
+  createPostPlaceholder: {
+    fontSize: 16,
+    color: '#65676b',
+  },
+  createPostActions: {
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    paddingBottom: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#dadde1',
+    paddingTop: 8,
+  },
+  createPostAction: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 8,
+  },
+  createPostActionIcon: {
+    fontSize: 16,
+    marginRight: 6,
+  },
+  createPostActionText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#65676b',
+  },
+  // Live Post Prompt Styles
+  livePostPrompt: {
+    backgroundColor: '#fff',
+    marginBottom: 8,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    ...Platform.select({
+      web: {
+        boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)',
+      },
+      default: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
+        elevation: 2,
+      },
+    }),
+  },
+  liveIndicatorBadge: {
+    backgroundColor: '#ff3040',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  liveIndicatorText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  goLiveButton: {
+    backgroundColor: '#ff3040',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 20,
+  },
+  goLiveText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  storiesPreview: {
+    marginBottom: 16,
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    ...Platform.select({
+      web: {
+        boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)',
+      },
+      default: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
+        elevation: 2,
       },
     }),
   },
@@ -384,34 +524,71 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#dadde1',
   },
   storiesPreviewTitle: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '600',
-    color: '#000',
+    color: '#050505',
   },
   viewAllText: {
-    fontSize: 14,
-    color: '#007AFF',
-    fontWeight: '500',
+    fontSize: 15,
+    color: '#1877f2',
+    fontWeight: '600',
   },
   emptyState: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: 60,
+    backgroundColor: '#f0f2f5',
+  },
+  emptyLiveState: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 60,
+    paddingHorizontal: 40,
+  },
+  emptyLiveIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#f0f2f5',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  emptyLiveEmoji: {
+    fontSize: 32,
   },
   emptyTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '600',
-    color: '#000',
+    color: '#050505',
     marginBottom: 8,
+    textAlign: 'center',
   },
   emptyDescription: {
-    fontSize: 14,
-    color: '#666',
+    fontSize: 16,
+    color: '#65676b',
     textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 20,
+  },
+  emptyActionButton: {
+    backgroundColor: '#1877f2',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 20,
+  },
+  emptyActionText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
   headerContainer: {
     marginBottom: 16,

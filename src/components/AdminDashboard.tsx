@@ -12,9 +12,9 @@ import {
   Platform,
   FlatList,
 } from 'react-native';
-import { CatalogItem } from '../../../src/types';
+import { CatalogItem } from '../types';
 import { useCatalog } from '../contexts/CatalogContext';
-import { Typography, FontConfig } from '../utils/fonts';
+import { Typography, FontConfig, FontWeight } from '../utils/fonts';
 import ContentController from './ContentController';
 
 const AdminDashboard: React.FC = () => {
@@ -591,7 +591,7 @@ const styles = StyleSheet.create({
   },
   addButtonText: {
     color: 'white',
-    fontWeight: '600',
+    fontWeight: FontWeight.semibold,
     textAlign: 'center',
   },
   clearButton: {
@@ -603,7 +603,7 @@ const styles = StyleSheet.create({
   },
   clearButtonText: {
     color: 'white',
-    fontWeight: '600',
+    fontWeight: FontWeight.semibold,
     textAlign: 'center',
   },
   sectionToggle: {

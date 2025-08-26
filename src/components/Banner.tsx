@@ -15,6 +15,9 @@ import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext';
 import { useContent } from '../contexts/ContentContext';
 import { DeviceType } from '../types';
+import ProfileSection from '../screens/ProfileSection';
+import OrdersSection from '../screens/OrdersSection';
+import AddressesSection from '../screens/AddressesSection';
 
 interface BannerProps {
   deviceType: DeviceType;
@@ -28,10 +31,18 @@ const Banner: React.FC<BannerProps> = ({ deviceType, imageUrl, onCartPress }) =>
   const { contentData } = useContent();
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [otp, setOtp] = useState('');
-  const [otpSent, setOtpSent] = useState(false);
-  const [otpLoading, setOtpLoading] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [showOrdersModal, setShowOrdersModal] = useState(false);
+  const [showAddressesModal, setShowAddressesModal] = useState(false);
+  const [loginForm, setLoginForm] = useState({
+    phoneNumber: '',
+    password: '',
+    name: '',
+  });
+  const [loginMode, setLoginMode] = useState<'login' | 'signup'>('login');
+  const [captchaCode, setCaptchaCode] = useState('');
+  const [generatedCaptcha, setGeneratedCaptcha] = useState('');
+  const [loginLoading, setLoginLoading] = useState(false);
 
   const { width } = Dimensions.get('window');
   const isDesktop = deviceType === 'desktop';
@@ -41,60 +52,77 @@ const Banner: React.FC<BannerProps> = ({ deviceType, imageUrl, onCartPress }) =>
     ? Math.max(140, Math.min(240, width * 0.2)) 
     : Math.max(88, Math.min(180, width * 0.13));
 
-  const handleSendOtp = async () => {
-    if (!phoneNumber || phoneNumber.length !== 10) {
+  // Generate CAPTCHA
+  const generateCaptcha = () => {
+    const characters = 'ABCDEFGHIJKLMNPQRSTUVWXYZ123456789'; // Avoid confusing characters
+    let result = '';
+    for (let i = 0; i < 6; i++) {
+      result += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+    setGeneratedCaptcha(result);
+    setCaptchaCode('');
+  };
+
+  // Generate CAPTCHA when login modal opens
+  React.useEffect(() => {
+    if (showLoginModal) {
+      generateCaptcha();
+    }
+  }, [showLoginModal]);
+
+  // Reset form when modal closes
+  const resetLoginForm = () => {
+    setLoginForm({ phoneNumber: '', password: '', name: '' });
+    setCaptchaCode('');
+    setLoginMode('login');
+  };
+
+  const handleLogin = async () => {
+    // Validate form
+    if (!loginForm.phoneNumber || loginForm.phoneNumber.length !== 10) {
       Alert.alert('Invalid Phone Number', 'Please enter a valid 10-digit mobile number.');
       return;
     }
     
-    setOtpLoading(true);
-    try {
-      // Simulate OTP sending - replace with real SMS API
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      setOtpSent(true);
-      Alert.alert('📱 OTP Sent!', `Verification code sent to +91 ${phoneNumber}\n\n(Demo: Use 123456 as OTP)`);
-    } catch (error) {
-      Alert.alert('❌ Error', 'Failed to send OTP. Please try again.');
-    } finally {
-      setOtpLoading(false);
-    }
-  };
-
-  const handleVerifyOtp = async () => {
-    if (!otp || otp.length !== 6) {
-      Alert.alert('Invalid OTP', 'Please enter the 6-digit verification code.');
+    if (!loginForm.password || loginForm.password.length < 6) {
+      Alert.alert('Invalid Password', 'Password must be at least 6 characters long.');
       return;
     }
 
-    if (otp !== '123456') {
-      Alert.alert('❌ Invalid OTP', 'Please check the verification code and try again.');
+    if (loginMode === 'signup' && (!loginForm.name || loginForm.name.trim().length < 2)) {
+      Alert.alert('Invalid Name', 'Please enter your full name.');
       return;
     }
 
+    if (!captchaCode || captchaCode.toUpperCase() !== generatedCaptcha) {
+      Alert.alert('Invalid CAPTCHA', 'Please enter the correct CAPTCHA code.');
+      return;
+    }
+
+    setLoginLoading(true);
     try {
-      // Create user from phone number
-      const user = {
-        id: `phone_${phoneNumber}`,
-        name: `User ${phoneNumber.slice(-4)}`,
-        email: `+91${phoneNumber}@onyx-coffee.com`,
-        phone: `+91${phoneNumber}`,
-        initials: 'U',
+      // Create user object
+      const userData = {
+        id: `phone_${loginForm.phoneNumber}`,
+        name: loginMode === 'signup' ? loginForm.name.trim() : `User ${loginForm.phoneNumber.slice(-4)}`,
+        email: `+91${loginForm.phoneNumber}@onyx-coffee.com`,
+        phone: `+91${loginForm.phoneNumber}`,
+        initials: loginMode === 'signup' ? loginForm.name.charAt(0).toUpperCase() : 'U',
       };
       
-      await login(user.email, 'phone_auth');
+      console.log('Logging in with user data:', userData);
+      
+      // Simulate authentication with phone + password, passing user data
+      await login(userData.email, loginForm.password, userData);
       setShowLoginModal(false);
-      resetPhoneForm();
-      Alert.alert('✅ Welcome!', `Successfully logged in with +91 ${phoneNumber}`);
+      resetLoginForm();
+      Alert.alert('✅ Welcome!', `Successfully ${loginMode === 'signup' ? 'signed up' : 'logged in'} with +91 ${loginForm.phoneNumber}`);
     } catch (error) {
-      Alert.alert('Login Failed', 'Please try again.');
+      Alert.alert(`${loginMode === 'signup' ? 'Signup' : 'Login'} Failed`, 'Please check your credentials and try again.');
+      generateCaptcha(); // Generate new CAPTCHA on failed attempt
+    } finally {
+      setLoginLoading(false);
     }
-  };
-
-  const resetPhoneForm = () => {
-    setPhoneNumber('');
-    setOtp('');
-    setOtpSent(false);
-    setOtpLoading(false);
   };
 
   const handleDemoLogin = async () => {
@@ -220,64 +248,100 @@ const Banner: React.FC<BannerProps> = ({ deviceType, imageUrl, onCartPress }) =>
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>🇮🇳 Login with Mobile Number</Text>
-            <Text style={styles.modalSubtitle}>Enter your mobile number to receive OTP</Text>
+            <Text style={styles.modalTitle}>
+              {loginMode === 'signup' ? '📱 Sign Up' : '🇮🇳 Login'} with Mobile Number
+            </Text>
+            <Text style={styles.modalSubtitle}>
+              {loginMode === 'signup' 
+                ? 'Create your account with phone number and password' 
+                : 'Enter your phone number and password to login'}
+            </Text>
             
-            {!otpSent ? (
-              <>
-                <View style={styles.phoneInputContainer}>
-                  <Text style={styles.countryCode}>+91</Text>
-                  <TextInput
-                    style={styles.phoneInput}
-                    placeholder="Mobile Number (10 digits)"
-                    value={phoneNumber}
-                    onChangeText={setPhoneNumber}
-                    keyboardType="phone-pad"
-                    maxLength={10}
-                  />
-                </View>
-                
-                <View style={styles.modalButtons}>
-                  <Pressable 
-                    style={[styles.primaryButton, otpLoading && styles.disabledButton]} 
-                    onPress={handleSendOtp}
-                    disabled={otpLoading}
-                  >
-                    <Text style={styles.primaryButtonText}>
-                      {otpLoading ? 'Sending OTP...' : 'Send OTP'}
-                    </Text>
-                  </Pressable>
-                </View>
-              </>
-            ) : (
-              <>
-                <Text style={styles.otpSentText}>
-                  📱 OTP sent to +91 {phoneNumber}
+            {/* Toggle Login/Signup */}
+            <View style={styles.toggleContainer}>
+              <Pressable 
+                style={[styles.toggleButton, loginMode === 'login' && styles.toggleButtonActive]}
+                onPress={() => setLoginMode('login')}
+              >
+                <Text style={[styles.toggleButtonText, loginMode === 'login' && styles.toggleButtonTextActive]}>
+                  Login
                 </Text>
-                
-                <TextInput
-                  style={styles.otpInput}
-                  placeholder="Enter 6-digit OTP"
-                  value={otp}
-                  onChangeText={setOtp}
-                  keyboardType="number-pad"
-                  maxLength={6}
-                />
-                
-                <View style={styles.modalButtons}>
-                  <Pressable style={styles.primaryButton} onPress={handleVerifyOtp}>
-                    <Text style={styles.primaryButtonText}>Verify OTP</Text>
-                  </Pressable>
-                  
-                  <Pressable 
-                    style={styles.secondaryButton} 
-                    onPress={() => setOtpSent(false)}
-                  >
-                    <Text style={styles.secondaryButtonText}>Change Number</Text>
-                  </Pressable>
-                </View>
-              </>
+              </Pressable>
+              <Pressable 
+                style={[styles.toggleButton, loginMode === 'signup' && styles.toggleButtonActive]}
+                onPress={() => setLoginMode('signup')}
+              >
+                <Text style={[styles.toggleButtonText, loginMode === 'signup' && styles.toggleButtonTextActive]}>
+                  Sign Up
+                </Text>
+              </Pressable>
+            </View>
+
+            {/* Name field for signup */}
+            {loginMode === 'signup' && (
+              <TextInput
+                style={styles.input}
+                placeholder="Full Name"
+                value={loginForm.name}
+                onChangeText={(text) => setLoginForm({...loginForm, name: text})}
+                autoCapitalize="words"
+              />
             )}
+            
+            {/* Phone Number */}
+            <View style={styles.phoneInputContainer}>
+              <Text style={styles.countryCode}>+91</Text>
+              <TextInput
+                style={styles.phoneInput}
+                placeholder="Mobile Number (10 digits)"
+                value={loginForm.phoneNumber}
+                onChangeText={(text) => setLoginForm({...loginForm, phoneNumber: text})}
+                keyboardType="phone-pad"
+                maxLength={10}
+              />
+            </View>
+
+            {/* Password */}
+            <TextInput
+              style={styles.input}
+              placeholder={loginMode === 'signup' ? 'Create Password (min 6 characters)' : 'Enter Password'}
+              value={loginForm.password}
+              onChangeText={(text) => setLoginForm({...loginForm, password: text})}
+              secureTextEntry
+            />
+
+            {/* CAPTCHA */}
+            <View style={styles.captchaContainer}>
+              <Text style={styles.captchaLabel}>Security Verification:</Text>
+              <View style={styles.captchaBox}>
+                <Text style={styles.captchaText}>{generatedCaptcha}</Text>
+                <Pressable style={styles.refreshCaptcha} onPress={generateCaptcha}>
+                  <Text style={styles.refreshCaptchaText}>🔄</Text>
+                </Pressable>
+              </View>
+              <TextInput
+                style={styles.captchaInput}
+                placeholder="Enter CAPTCHA code"
+                value={captchaCode}
+                onChangeText={setCaptchaCode}
+                autoCapitalize="characters"
+                maxLength={6}
+              />
+            </View>
+            
+            <View style={styles.modalButtons}>
+              <Pressable 
+                style={[styles.primaryButton, loginLoading && styles.disabledButton]} 
+                onPress={handleLogin}
+                disabled={loginLoading}
+              >
+                <Text style={styles.primaryButtonText}>
+                  {loginLoading 
+                    ? (loginMode === 'signup' ? 'Signing Up...' : 'Logging In...') 
+                    : (loginMode === 'signup' ? 'Sign Up' : 'Login')}
+                </Text>
+              </Pressable>
+            </View>
             
             <View style={styles.divider} />
             
@@ -289,7 +353,7 @@ const Banner: React.FC<BannerProps> = ({ deviceType, imageUrl, onCartPress }) =>
               style={styles.cancelButton} 
               onPress={() => {
                 setShowLoginModal(false);
-                resetPhoneForm();
+                resetLoginForm();
               }}
             >
               <Text style={styles.cancelButtonText}>Cancel</Text>
@@ -310,13 +374,32 @@ const Banner: React.FC<BannerProps> = ({ deviceType, imageUrl, onCartPress }) =>
           onPress={() => setShowProfileMenu(false)}
         >
           <View style={[styles.profileMenu, { top: bannerHeight + 10 }]}>
-            <Pressable style={styles.menuItem}>
+            <Pressable 
+              style={styles.menuItem}
+              onPress={() => {
+                setShowProfileMenu(false);
+                setShowProfileModal(true);
+                console.log('Opening profile modal for user:', user?.name);
+              }}
+            >
               <Text style={styles.menuItemText}>Profile</Text>
             </Pressable>
-            <Pressable style={styles.menuItem}>
+            <Pressable 
+              style={styles.menuItem}
+              onPress={() => {
+                setShowProfileMenu(false);
+                setShowOrdersModal(true);
+              }}
+            >
               <Text style={styles.menuItemText}>Orders</Text>
             </Pressable>
-            <Pressable style={styles.menuItem}>
+            <Pressable 
+              style={styles.menuItem}
+              onPress={() => {
+                setShowProfileMenu(false);
+                setShowAddressesModal(true);
+              }}
+            >
               <Text style={styles.menuItemText}>Addresses</Text>
             </Pressable>
             <View style={styles.menuDivider} />
@@ -325,6 +408,63 @@ const Banner: React.FC<BannerProps> = ({ deviceType, imageUrl, onCartPress }) =>
             </Pressable>
           </View>
         </Pressable>
+      </Modal>
+
+      {/* Profile Modal */}
+      <Modal
+        visible={showProfileModal}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setShowProfileModal(false)}
+      >
+        <View style={styles.fullScreenModal}>
+          <View style={styles.fullScreenHeader}>
+            <Pressable onPress={() => setShowProfileModal(false)} style={styles.modalCloseButton}>
+              <Text style={styles.modalCloseButtonText}>×</Text>
+            </Pressable>
+            <Text style={styles.fullScreenTitle}>Profile</Text>
+            <View style={styles.headerSpacer} />
+          </View>
+          <ProfileSection />
+        </View>
+      </Modal>
+
+      {/* Orders Modal */}
+      <Modal
+        visible={showOrdersModal}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setShowOrdersModal(false)}
+      >
+        <View style={styles.fullScreenModal}>
+          <View style={styles.fullScreenHeader}>
+            <Pressable onPress={() => setShowOrdersModal(false)} style={styles.modalCloseButton}>
+              <Text style={styles.modalCloseButtonText}>×</Text>
+            </Pressable>
+            <Text style={styles.fullScreenTitle}>Orders</Text>
+            <View style={styles.headerSpacer} />
+          </View>
+          <OrdersSection />
+        </View>
+      </Modal>
+
+      {/* Addresses Modal */}
+      <Modal
+        visible={showAddressesModal}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setShowAddressesModal(false)}
+      >
+        <View style={styles.fullScreenModal}>
+          <View style={styles.fullScreenHeader}>
+            <Pressable onPress={() => setShowAddressesModal(false)} style={styles.modalCloseButton}>
+              <Text style={styles.modalCloseButtonText}>×</Text>
+            </Pressable>
+            <Text style={styles.fullScreenTitle}>Addresses</Text>
+            <View style={styles.headerSpacer} />
+          </View>
+          <AddressesSection />
+        </View>
       </Modal>
     </>
   );
@@ -481,23 +621,78 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     fontSize: 14,
   },
-  otpInput: {
+  toggleContainer: {
+    flexDirection: 'row',
+    marginBottom: 16,
+    borderRadius: 8,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  toggleButton: {
+    flex: 1,
+    paddingVertical: 12,
+    alignItems: 'center',
+    backgroundColor: '#f8f9fa',
+  },
+  toggleButtonActive: {
+    backgroundColor: '#000',
+  },
+  toggleButtonText: {
+    fontSize: 14,
+    color: '#666',
+    fontWeight: '500',
+  },
+  toggleButtonTextActive: {
+    color: '#fff',
+    fontWeight: '600',
+  },
+  captchaContainer: {
+    marginBottom: 16,
+  },
+  captchaLabel: {
+    fontSize: 14,
+    color: '#333',
+    fontWeight: '500',
+    marginBottom: 8,
+  },
+  captchaBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f0f0f0',
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    marginBottom: 8,
+  },
+  captchaText: {
+    flex: 1,
+    fontSize: 18,
+    fontWeight: 'bold',
+    letterSpacing: 3,
+    color: '#333',
+    textAlign: 'center',
+    fontFamily: 'monospace',
+  },
+  refreshCaptcha: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  refreshCaptchaText: {
+    fontSize: 16,
+  },
+  captchaInput: {
     borderWidth: 1,
     borderColor: '#ddd',
     borderRadius: 8,
     paddingHorizontal: 12,
-    paddingVertical: 12,
-    marginBottom: 12,
+    paddingVertical: 10,
     fontSize: 16,
     textAlign: 'center',
-    letterSpacing: 4,
-  },
-  otpSentText: {
-    fontSize: 14,
-    color: '#27ae60',
-    marginBottom: 16,
-    textAlign: 'center',
-    fontWeight: '500',
+    letterSpacing: 2,
+    textTransform: 'uppercase',
   },
   disabledButton: {
     opacity: 0.6,
@@ -596,6 +791,42 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: '#eee',
     marginVertical: 4,
+  },
+  // Full Screen Modal Styles
+  fullScreenModal: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  fullScreenHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+    backgroundColor: '#fff',
+  },
+  modalCloseButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#f0f2f5',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalCloseButtonText: {
+    fontSize: 24,
+    color: '#65676b',
+    fontWeight: '300',
+  },
+  fullScreenTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000',
+  },
+  headerSpacer: {
+    width: 40,
   },
 });
 
