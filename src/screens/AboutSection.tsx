@@ -9,6 +9,7 @@ import {
   Alert,
 } from 'react-native';
 import { DeviceType, PlatformType } from '../types';
+import { useContent } from '../contexts/ContentContext';
 
 interface AboutSectionProps {
   deviceType: DeviceType;
@@ -17,6 +18,7 @@ interface AboutSectionProps {
 
 const AboutSection: React.FC<AboutSectionProps> = ({ deviceType }) => {
   const isDesktop = deviceType === 'desktop';
+  const { contentData } = useContent();
 
   const aboutTiles = [
     {
@@ -98,11 +100,11 @@ const AboutSection: React.FC<AboutSectionProps> = ({ deviceType }) => {
         styles.sectionTitle,
         isDesktop ? styles.desktopSectionTitle : styles.mobileSectionTitle
       ]}>
-        About Onyx
+        {contentData.about.sectionTitle}
       </Text>
 
       <Text style={styles.sectionSubtitle}>
-        Crafting exceptional coffee experiences since day one. Learn more about our mission, values, and the people behind your perfect cup.
+        {contentData.about.sectionSubtitle}
       </Text>
 
       {/* Hero Content */}
@@ -115,11 +117,9 @@ const AboutSection: React.FC<AboutSectionProps> = ({ deviceType }) => {
           />
         </View>
         <View style={styles.heroContent}>
-          <Text style={styles.heroTitle}>Premium Coffee, Ethical Sourcing</Text>
+          <Text style={styles.heroTitle}>{contentData.about.heroTitle}</Text>
           <Text style={styles.heroDescription}>
-            At Onyx Coffee, we believe that great coffee starts with great relationships. 
-            We work directly with farmers to ensure the highest quality beans while 
-            supporting sustainable farming practices and fair wages.
+            {contentData.about.heroDescription}
           </Text>
         </View>
       </View>
@@ -164,9 +164,9 @@ const AboutSection: React.FC<AboutSectionProps> = ({ deviceType }) => {
       <View style={styles.contactSection}>
         <Text style={styles.contactTitle}>Get in Touch</Text>
         <View style={styles.contactInfo}>
-          <Text style={styles.contactItem}>📧 hello@onyx-coffee.com</Text>
-          <Text style={styles.contactItem}>📱 +91 98765 43210</Text>
-          <Text style={styles.contactItem}>📍 Mumbai, Maharashtra, India</Text>
+          <Text style={styles.contactItem}>📧 {contentData.about.contactEmail}</Text>
+          <Text style={styles.contactItem}>📱 {contentData.about.contactPhone}</Text>
+          <Text style={styles.contactItem}>📍 {contentData.about.contactAddress}</Text>
         </View>
       </View>
     </ScrollView>

@@ -51,7 +51,6 @@ const ContentController: React.FC = () => {
       });
       // Show success feedback
       if (Platform.OS === 'web') {
-        // Create a temporary notification
         const notification = document.createElement('div');
         notification.innerText = '✅ Applied';
         notification.style.cssText = 'position:fixed;top:20px;right:20px;background:#000;color:#fff;padding:8px 12px;border-radius:4px;font-size:12px;z-index:1000;';
@@ -91,7 +90,6 @@ const ContentController: React.FC = () => {
   };
 
   const renderInputField = (section: string, field: string, label: string, placeholder: string, multiline = false, numberOfLines = 1) => {
-    const key = `${section}.${field}`;
     const hasChanges = hasUnappliedChanges(section, field);
     
     return (
@@ -134,18 +132,17 @@ const ContentController: React.FC = () => {
     <View style={styles.editorSection}>
       <Text style={styles.editorTitle}>Homepage Content</Text>
       
-      {/* Banner Section */}
       <View style={styles.contentGroup}>
-        <Text style={styles.groupTitle}>🎯 Hero Banner</Text>
+        <Text style={styles.groupTitle}>🏠 Banner Section</Text>
+        <Text style={styles.groupDescription}>Content shown in the top banner of the homepage</Text>
         
-        {renderInputField('homepage', 'bannerTitle', 'Banner Title', 'Main banner title')}
-        {renderInputField('homepage', 'bannerSubtitle', 'Banner Subtitle', 'Banner subtitle')}
-        {renderInputField('homepage', 'bannerImage', 'Banner Image URL', 'https://example.com/image.jpg')}
+        {renderInputField('homepage', 'brandName', 'Brand Name', 'Company brand name displayed in banner')}
+        {renderInputField('homepage', 'bannerImage', 'Banner Background Image URL', 'https://example.com/image.jpg')}
 
         {/* Image Preview */}
         {contentData.homepage.bannerImage && (
           <View style={styles.imagePreview}>
-            <Text style={styles.previewLabel}>Image Preview:</Text>
+            <Text style={styles.previewLabel}>Current Banner Image:</Text>
             <Image 
               source={{ uri: contentData.homepage.bannerImage }} 
               style={styles.previewImage}
@@ -153,14 +150,6 @@ const ContentController: React.FC = () => {
             />
           </View>
         )}
-      </View>
-
-      {/* Welcome Section */}
-      <View style={styles.contentGroup}>
-        <Text style={styles.groupTitle}>👋 Welcome Section</Text>
-        
-        {renderInputField('homepage', 'heroText', 'Hero Text', 'Main hero text')}
-        {renderInputField('homepage', 'welcomeMessage', 'Welcome Message', 'Welcome message for visitors', true, 3)}
       </View>
     </View>
   );
@@ -171,17 +160,19 @@ const ContentController: React.FC = () => {
       
       <View style={styles.contentGroup}>
         <Text style={styles.groupTitle}>☕ Product Section</Text>
+        <Text style={styles.groupDescription}>Main titles and tab labels for the products page</Text>
         
-        {renderInputField('product', 'sectionTitle', 'Main Section Title', 'Coffee Products')}
-        {renderInputField('product', 'exploreTitle', 'Explore Tab Title', 'Explore other products')}
-        {renderInputField('product', 'personalizedTitle', 'Personalized Tab Title', 'Product for you')}
+        {renderInputField('product', 'sectionTitle', 'Section Title', 'Main section heading')}
+        {renderInputField('product', 'exploreTitle', 'Explore Tab Title', 'Title for explore products tab')}
+        {renderInputField('product', 'personalizedTitle', 'Personal Tab Title', 'Title for personalized recommendations tab')}
       </View>
 
       <View style={styles.contentGroup}>
-        <Text style={styles.groupTitle}>🤖 Chatbot Content</Text>
+        <Text style={styles.groupTitle}>🤖 Chatbot Welcome</Text>
+        <Text style={styles.groupDescription}>Welcome message shown in the taste recommendation chatbot</Text>
         
-        {renderInputField('product', 'chatbotWelcome', 'Chatbot Welcome Title', 'Coffee Taste Assistant')}
-        {renderInputField('product', 'chatbotSubtitle', 'Chatbot Subtitle', 'Description for the chatbot functionality', true, 3)}
+        {renderInputField('product', 'chatbotWelcome', 'Chatbot Title', 'Welcome title for chatbot')}
+        {renderInputField('product', 'chatbotSubtitle', 'Chatbot Description', 'Description text for chatbot', true, 3)}
       </View>
     </View>
   );
@@ -192,25 +183,28 @@ const ContentController: React.FC = () => {
       
       <View style={styles.contentGroup}>
         <Text style={styles.groupTitle}>👥 Community Header</Text>
+        <Text style={styles.groupDescription}>Main heading and introduction text for community page</Text>
         
-        {renderInputField('community', 'sectionTitle', 'Section Title', 'Coffee Community')}
-        {renderInputField('community', 'welcomeText', 'Welcome Text', 'Join our community message', true, 2)}
+        {renderInputField('community', 'sectionTitle', 'Section Title', 'Main community page heading')}
+        {renderInputField('community', 'welcomeText', 'Welcome Text', 'Introduction text for community', true, 2)}
       </View>
 
       <View style={styles.contentGroup}>
         <Text style={styles.groupTitle}>⭐ Featured Content</Text>
+        <Text style={styles.groupDescription}>Highlighted content section shown on community page</Text>
         
-        {renderInputField('community', 'featuredTitle', 'Featured Article Title', 'Featured This Week')}
-        {renderInputField('community', 'featuredContent', 'Featured Content Title', 'Featured community content')}
-        {renderInputField('community', 'featuredDescription', 'Featured Content Description', 'Description of the featured content', true, 3)}
+        {renderInputField('community', 'featuredTitle', 'Featured Section Title', 'Title for featured content section')}
+        {renderInputField('community', 'featuredContent', 'Featured Item Title', 'Title of the featured content item')}
+        {renderInputField('community', 'featuredDescription', 'Featured Item Description', 'Description of featured content', true, 3)}
       </View>
 
       <View style={styles.contentGroup}>
-        <Text style={styles.groupTitle}>📊 Community Stats</Text>
+        <Text style={styles.groupTitle}>📊 Community Statistics</Text>
+        <Text style={styles.groupDescription}>Numbers displayed in community highlights section</Text>
         
-        {renderInputField('community', 'membersCount', 'Coffee Lovers Count', '1,250+')}
-        {renderInputField('community', 'guidesCount', 'Brew Guides Count', '500+')}
-        {renderInputField('community', 'reviewsCount', 'Reviews Count', '2,100+')}
+        {renderInputField('community', 'membersCount', 'Coffee Lovers Count', 'Number of community members')}
+        {renderInputField('community', 'guidesCount', 'Brew Guides Count', 'Number of brewing guides')}
+        {renderInputField('community', 'reviewsCount', 'Reviews Count', 'Number of reviews')}
       </View>
     </View>
   );
@@ -220,20 +214,28 @@ const ContentController: React.FC = () => {
       <Text style={styles.editorTitle}>About Section Content</Text>
       
       <View style={styles.contentGroup}>
-        <Text style={styles.groupTitle}>ℹ️ Company Information</Text>
+        <Text style={styles.groupTitle}>ℹ️ Page Header</Text>
+        <Text style={styles.groupDescription}>Main heading and subtitle shown at top of about page</Text>
         
-        {renderInputField('about', 'companyName', 'Company Name', 'Company name')}
-        {renderInputField('about', 'tagline', 'Tagline', 'Company tagline')}
-        {renderInputField('about', 'description', 'Company Description', 'Company description', true, 4)}
-        {renderInputField('about', 'missionStatement', 'Mission Statement', 'Mission statement', true, 3)}
+        {renderInputField('about', 'sectionTitle', 'Page Title', 'Main heading for about page')}
+        {renderInputField('about', 'sectionSubtitle', 'Page Subtitle', 'Subtitle/description under main heading', true, 3)}
       </View>
 
       <View style={styles.contentGroup}>
-        <Text style={styles.groupTitle}>📍 Contact & Location</Text>
+        <Text style={styles.groupTitle}>🎯 Hero Content</Text>
+        <Text style={styles.groupDescription}>Featured content section with image and description</Text>
         
-        {renderInputField('about', 'address', 'Address', 'Company address', true, 2)}
-        {renderInputField('about', 'email', 'Contact Email', 'contact@company.com')}
-        {renderInputField('about', 'phone', 'Phone Number', '+91 XXXXX XXXXX')}
+        {renderInputField('about', 'heroTitle', 'Hero Section Title', 'Title for main hero content')}
+        {renderInputField('about', 'heroDescription', 'Hero Description', 'Main description text in hero section', true, 4)}
+      </View>
+
+      <View style={styles.contentGroup}>
+        <Text style={styles.groupTitle}>📞 Contact Information</Text>
+        <Text style={styles.groupDescription}>Contact details shown in footer of about page</Text>
+        
+        {renderInputField('about', 'contactEmail', 'Contact Email', 'company@example.com')}
+        {renderInputField('about', 'contactPhone', 'Contact Phone', '+91 XXXXX XXXXX')}
+        {renderInputField('about', 'contactAddress', 'Contact Address', 'City, State, Country')}
       </View>
     </View>
   );
@@ -254,22 +256,24 @@ const ContentController: React.FC = () => {
   };
 
   const renderPreview = () => {
-    // Simple preview based on active section
     const sectionData = (contentData as any)[activeSection] || {};
     
     return (
       <View style={styles.previewContainer}>
-        <Text style={styles.previewTitle}>Live Preview - {contentSections.find(s => s.id === activeSection)?.title}</Text>
+        <Text style={styles.previewTitle}>
+          Live Preview - {contentSections.find(s => s.id === activeSection)?.title}
+        </Text>
         <ScrollView style={styles.previewContent} showsVerticalScrollIndicator={false}>
           {Object.entries(sectionData).map(([key, value]) => (
             <View key={key} style={styles.previewItem}>
-              <Text style={styles.previewFieldName}>{key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}:</Text>
+              <Text style={styles.previewFieldName}>
+                {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}:
+              </Text>
               <Text style={styles.previewFieldValue}>{String(value)}</Text>
             </View>
           ))}
         </ScrollView>
         
-        {/* Save All Changes Button */}
         <View style={styles.saveSection}>
           <Pressable style={styles.saveButton} onPress={handleSave}>
             <Text style={styles.saveButtonText}>💾 Save All Changes</Text>
@@ -282,7 +286,7 @@ const ContentController: React.FC = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Content Controller</Text>
-      <Text style={styles.subtitle}>Manage website content, banners, text, and images</Text>
+      <Text style={styles.subtitle}>Manage actual website content that appears on your live site</Text>
 
       {/* Horizontal Navigation */}
       <ScrollView 
@@ -419,7 +423,13 @@ const styles = StyleSheet.create({
   groupTitle: {
     ...Typography.h4,
     color: '#000',
+    marginBottom: 8,
+  },
+  groupDescription: {
+    ...Typography.caption,
+    color: '#666',
     marginBottom: 16,
+    lineHeight: 16,
   },
   inputGroup: {
     marginBottom: 16,

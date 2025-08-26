@@ -2,11 +2,8 @@ import React, { createContext, useContext, useState, ReactNode } from 'react';
 
 export interface ContentData {
   homepage: {
-    bannerTitle: string;
-    bannerSubtitle: string;
+    brandName: string;
     bannerImage: string;
-    heroText: string;
-    welcomeMessage: string;
   };
   product: {
     sectionTitle: string;
@@ -18,21 +15,21 @@ export interface ContentData {
   community: {
     sectionTitle: string;
     welcomeText: string;
-    featuredContent: string;
     featuredTitle: string;
+    featuredContent: string;
     featuredDescription: string;
     membersCount: string;
     guidesCount: string;
     reviewsCount: string;
   };
   about: {
-    companyName: string;
-    tagline: string;
-    description: string;
-    missionStatement: string;
-    address: string;
-    email: string;
-    phone: string;
+    sectionTitle: string;
+    sectionSubtitle: string;
+    heroTitle: string;
+    heroDescription: string;
+    contactEmail: string;
+    contactPhone: string;
+    contactAddress: string;
   };
 }
 
@@ -59,11 +56,8 @@ interface ContentProviderProps {
 export const ContentProvider: React.FC<ContentProviderProps> = ({ children }) => {
   const [contentData, setContentData] = useState<ContentData>({
     homepage: {
-      bannerTitle: 'Welcome to Onyx Coffee',
-      bannerSubtitle: 'Discover the perfect blend for your taste',
-      bannerImage: 'https://images.unsplash.com/photo-1447933601403-0c6688de566e?w=800',
-      heroText: 'Premium Coffee Experience',
-      welcomeMessage: 'Every cup tells a story of quality and passion',
+      brandName: 'Onyx Coffee',
+      bannerImage: 'https://images.unsplash.com/photo-1447933601403-0c6688de566e?w=1200',
     },
     product: {
       sectionTitle: 'Coffee Products',
@@ -73,23 +67,23 @@ export const ContentProvider: React.FC<ContentProviderProps> = ({ children }) =>
       chatbotSubtitle: 'Let\'s find your perfect brew! Answer a few questions and discover coffee that matches your taste.',
     },
     community: {
-      sectionTitle: 'Coffee Community',
+      sectionTitle: 'Community',
       welcomeText: 'Connect with fellow coffee enthusiasts and share your brewing journey.',
-      featuredContent: '"The Perfect Pour-Over Technique"',
       featuredTitle: 'Featured This Week',
+      featuredContent: '"The Perfect Pour-Over Technique"',
       featuredDescription: 'Master barista Sarah Chen shares her secrets for brewing the perfect cup using our Ethiopian Yirgacheffe beans.',
       membersCount: '1,250+',
       guidesCount: '500+',
       reviewsCount: '2,100+',
     },
     about: {
-      companyName: 'Onyx Coffee',
-      tagline: 'Crafting Excellence in Every Cup',
-      description: 'We are passionate about bringing you the finest coffee experience from around the world.',
-      missionStatement: 'To deliver exceptional coffee while supporting sustainable farming practices.',
-      address: '123 Coffee Street, Brew City, BC 12345',
-      email: 'hello@onyxcoffee.com',
-      phone: '+91 98765 43210',
+      sectionTitle: 'About Onyx',
+      sectionSubtitle: 'Crafting exceptional coffee experiences since day one. Learn more about our mission, values, and the people behind your perfect cup.',
+      heroTitle: 'Premium Coffee, Ethical Sourcing',
+      heroDescription: 'At Onyx Coffee, we believe that great coffee starts with great relationships. We work directly with farmers to ensure the highest quality beans while supporting sustainable farming practices and fair wages.',
+      contactEmail: 'hello@onyx-coffee.com',
+      contactPhone: '+91 98765 43210',
+      contactAddress: 'Mumbai, Maharashtra, India',
     },
   });
 

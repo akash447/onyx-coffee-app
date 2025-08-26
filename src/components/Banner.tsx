@@ -13,6 +13,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext';
+import { useContent } from '../contexts/ContentContext';
 import { DeviceType } from '../types';
 
 interface BannerProps {
@@ -24,6 +25,7 @@ interface BannerProps {
 const Banner: React.FC<BannerProps> = ({ deviceType, imageUrl, onCartPress }) => {
   const { user, isAuthenticated, login, logout, demoLogin, loading } = useAuth();
   const { itemCount } = useCart();
+  const { contentData } = useContent();
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -154,7 +156,7 @@ const Banner: React.FC<BannerProps> = ({ deviceType, imageUrl, onCartPress }) =>
     <>
       <View style={[styles.banner, { height: bannerHeight }]}>
         <ImageBackground
-          source={{ uri: imageUrl || 'https://images.unsplash.com/photo-1447933601403-0c6688de566e?w=1200' }}
+          source={{ uri: imageUrl || contentData.homepage.bannerImage }}
           style={styles.backgroundImage}
           onError={() => {
             // Fallback handled by LinearGradient overlay
@@ -167,7 +169,7 @@ const Banner: React.FC<BannerProps> = ({ deviceType, imageUrl, onCartPress }) =>
           >
             {/* Brand pill */}
             <View style={styles.brandPill}>
-              <Text style={styles.brandText}>Onyx Coffee</Text>
+              <Text style={styles.brandText}>{contentData.homepage.brandName}</Text>
             </View>
 
             {/* Cart and Auth buttons */}
