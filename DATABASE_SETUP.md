@@ -23,7 +23,9 @@ npm install mongodb mongoose
 
 2. **Environment variables (.env.local):**
 ```env
-MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/onyx-coffee
+# ⚠️ SECURITY: Replace with your actual MongoDB credentials
+# Do NOT commit this file to version control
+MONGODB_URI=mongodb+srv://YOUR_ACTUAL_USERNAME:YOUR_ACTUAL_PASSWORD@YOUR_CLUSTER.mongodb.net/onyx-coffee
 ```
 
 3. **Move the API files:**
