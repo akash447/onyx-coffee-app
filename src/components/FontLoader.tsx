@@ -6,18 +6,12 @@ const FontLoader = () => {
     if (Platform.OS === 'web') {
       // Load Google Fonts for web platform
       const loadFonts = () => {
-        // Create link elements for Google Fonts
+        // Create link elements for Google Fonts - Updated to match design system
         const fontLinks = [
-          // Inter font (variable weight)
-          'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap',
-          // Sora font for headings
-          'https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap',
-          // Manrope font (alternative for headings)
-          'https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap',
-          // Noto Sans Devanagari for Hindi support
-          'https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@300;400;500;600;700;800;900&display=swap',
-          // Poppins font for additional options
-          'https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap'
+          // Inter font for UI elements
+          'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap',
+          // Playfair Display for headings
+          'https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&display=swap'
         ];
 
         fontLinks.forEach(href => {
@@ -38,9 +32,10 @@ const FontLoader = () => {
       const style = document.createElement('style');
       style.textContent = `
         :root {
-          --font-family-regular: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
-          --font-family-heading: 'Sora', 'Manrope', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
-          --font-family-hindi: 'Noto Sans Devanagari', 'Poppins', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          --font-family-sans-serif: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          --font-family-serif: 'Playfair Display', 'Times New Roman', serif;
+          --font-family-regular: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          --font-family-heading: 'Playfair Display', 'Times New Roman', serif;
         }
         
         /* Apply font smoothing for better rendering */

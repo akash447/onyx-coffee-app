@@ -5,6 +5,7 @@ import {
   Dimensions,
   StatusBar,
   Platform,
+  ScrollView,
 } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -18,24 +19,29 @@ import { UserStoriesProvider } from './src/contexts/UserStoriesContext';
 import { ProfileProvider } from './src/contexts/ProfileContext';
 
 // Components
-import Banner from './src/components/Banner';
-import SideRail from './src/components/SideRail';
+import TopNavigation from './src/components/TopNavigation';
+import HeroSection from './src/components/HeroSection';
+import TasteQuiz from './src/components/TasteQuiz';
+import ProductDiscoveryGrid from './src/components/ProductDiscoveryGrid';
 import ProductSection from './src/screens/ProductSection';
 import FontLoader from './src/components/FontLoader';
 import CommunitySection from './src/screens/CommunitySection';
 import AboutSection from './src/screens/AboutSection';
 import AdminSection from './src/screens/AdminSection';
 import CartSection from './src/screens/CartSection';
+import ProfileSection from './src/screens/ProfileSection';
 
 // Types
 import { RouteType, DeviceType, PlatformType } from './src/types';
+import { Colors, Spacing } from './src/utils/designSystem';
 
 export default function App() {
   const [currentRoute, setCurrentRoute] = useState<RouteType>({ 
     kind: 'section', 
-    section: 'product' 
+    section: 'home' 
   });
   const [dimensions, setDimensions] = useState(Dimensions.get('window'));
+  const [showTasteQuiz, setShowTasteQuiz] = useState(false);
 
   // Update dimensions on screen size change
   useEffect(() => {
@@ -63,12 +69,6 @@ export default function App() {
 
   const deviceType = getDeviceType();
   const platformType = getPlatformType();
-  const isDesktop = deviceType === 'desktop';
-
-  // Calculate layout dimensions
-  const railWidth = isDesktop ? 180 : 84;
-  const contentWidth = dimensions.width - railWidth;
-  const gap = isDesktop ? 24 : 12;
 
   // Navigation handlers
   const handleNavigate = (route: RouteType) => {
@@ -83,11 +83,41 @@ export default function App() {
     setCurrentRoute({ kind: 'section', section: 'product' });
   };
 
-  const handleScrollToSection = (section: string) => {
-    // For desktop: smooth scroll to section
-    console.log(`Scrolling to section: ${section}`);
-    setCurrentRoute({ kind: 'section', section: section as any });
+
+  const handleProductPress = (product: any) => {
+    setCurrentRoute({ kind: 'sku', product: product.id });
   };
+
+  // Render homepage content
+  const renderHomepage = () => (
+    <ScrollView style={styles.homepage}>
+      {/* Full-height Hero Section */}
+      <HeroSection
+        deviceType={deviceType}
+      />
+      
+      {/* Coffee Taste Assistant Section */}
+      <View style={styles.tasteAssistantSection}>
+        <TasteQuiz
+          deviceType={deviceType}
+          onProductRecommended={(product) => console.log('Recommended:', product)}
+          onProductPress={handleProductPress}
+          isModal={false}
+          title="Product for You: Coffee Taste Assistant"
+        />
+      </View>
+      
+      {/* Product for You Section */}
+      <View style={styles.productForYouSection}>
+        <ProductDiscoveryGrid
+          deviceType={deviceType}
+          onProductPress={handleProductPress}
+          maxItems={6}
+          title="Recommended Products"
+        />
+      </View>
+    </ScrollView>
+  );
 
   // Render current section content
   const renderContent = () => {
@@ -95,11 +125,12 @@ export default function App() {
       case 'section':
         switch (currentRoute.section) {
           case 'product':
+            // When clicking Product from navigation, show explore section
             return (
               <ProductSection
                 deviceType={deviceType}
                 platformType={platformType}
-                currentRoute={currentRoute}
+                currentRoute={{ ...currentRoute, view: 'explore' }}
                 onNavigate={handleNavigate}
               />
             );
@@ -133,8 +164,13 @@ export default function App() {
                 onBackToShopping={handleBackToShopping}
               />
             );
+          case 'profile':
+            return (
+              <ProfileSection />
+            );
+          case 'home':
           default:
-            return <ProductSection deviceType={deviceType} platformType={platformType} currentRoute={currentRoute} onNavigate={handleNavigate} />;
+            return renderHomepage();
         }
       case 'sku':
         return (
@@ -154,7 +190,7 @@ export default function App() {
           />
         );
       default:
-        return <ProductSection deviceType={deviceType} platformType={platformType} currentRoute={currentRoute} onNavigate={handleNavigate} />;
+        return renderHomepage();
     }
   };
 
@@ -167,36 +203,39 @@ export default function App() {
               <ContentProvider>
                 <UserStoriesProvider>
                   <ProfileProvider>
-              <FontLoader />
-              <SafeAreaView style={styles.container}>
-                <StatusBar 
-                  barStyle="dark-content" 
-                  backgroundColor="transparent" 
-                  translucent 
-                />
-                
-                {/* Banner */}
-                <Banner 
-                  deviceType={deviceType} 
-                  onCartPress={handleCartPress}
-                />
+                    <FontLoader />
+                    <SafeAreaView style={styles.container}>
+                      <StatusBar 
+                        barStyle="dark-content" 
+                        backgroundColor="transparent" 
+                        translucent 
+                      />
+                      
+                      {/* Top Navigation */}
+                      <TopNavigation
+                        currentRoute={currentRoute}
+                        onNavigate={handleNavigate}
+                        onCartPress={handleCartPress}
+                        deviceType={deviceType}
+                      />
 
-                {/* Main Content Area */}
-                <View style={[styles.mainContent, { gap }]}>
-                  {/* Side Rail */}
-                  <SideRail
-                    deviceType={deviceType}
-                    currentRoute={currentRoute}
-                    onNavigate={handleNavigate}
-                    onScrollToSection={isDesktop ? handleScrollToSection : undefined}
-                  />
+                      {/* Main Content */}
+                      <View style={styles.mainContent}>
+                        {renderContent()}
+                      </View>
 
-                  {/* Content Area */}
-                  <View style={[styles.contentArea, { width: contentWidth }]}>
-                    {renderContent()}
-                  </View>
-                </View>
-              </SafeAreaView>
+                      {/* Mobile Taste Quiz Modal */}
+                      {deviceType === 'mobile' && (
+                        <TasteQuiz
+                          deviceType={deviceType}
+                          onProductRecommended={(product) => console.log('Recommended:', product)}
+                          onProductPress={handleProductPress}
+                          isModal={true}
+                          visible={showTasteQuiz}
+                          onClose={() => setShowTasteQuiz(false)}
+                        />
+                      )}
+                    </SafeAreaView>
                   </ProfileProvider>
                 </UserStoriesProvider>
               </ContentProvider>
@@ -214,15 +253,24 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    backgroundColor: '#E2D8A5',
+    backgroundColor: Colors.surface.secondary, // Warm off-white background
   },
   mainContent: {
     flex: 1,
-    flexDirection: 'row',
-    paddingHorizontal: 16,
-    paddingTop: 8,
+    backgroundColor: Colors.surface.secondary,
   },
-  contentArea: {
+  homepage: {
     flex: 1,
+    backgroundColor: Colors.surface.secondary,
+  },
+  
+  tasteAssistantSection: {
+    backgroundColor: Colors.surface.secondary,
+    paddingVertical: Spacing.xl,
+  },
+  
+  productForYouSection: {
+    backgroundColor: Colors.surface.secondary,
+    minHeight: 600, // Ensure sufficient space for product grid
   },
 });

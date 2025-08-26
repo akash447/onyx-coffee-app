@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    
+    <!-- SEO Meta Tags -->
+    <title>Onyx Coffee - Premium Coffee Experience</title>
+    <meta name="description" content="Discover your perfect coffee match with Onyx Coffee. Premium single-origin beans, expert curation, and personalized recommendations." />
+    <meta name="keywords" content="coffee, premium coffee, single origin, coffee beans, specialty coffee, coffee roasting" />
+    <meta name="author" content="Onyx Coffee" />
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="Onyx Coffee - Premium Coffee Experience" />
+    <meta property="og:description" content="Discover your perfect coffee match with Onyx Coffee. Premium single-origin beans, expert curation, and personalized recommendations." />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="https://images.unsplash.com/photo-1447933601403-0c6688de566e?w=1200&h=630&fit=crop" />
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Onyx Coffee - Premium Coffee Experience" />
+    <meta name="twitter:description" content="Discover your perfect coffee match with premium single-origin beans and personalized recommendations." />
+    <meta name="twitter:image" content="https://images.unsplash.com/photo-1447933601403-0c6688de566e?w=1200&h=630&fit=crop" />
+    
+    <!-- Theme and Icons -->
+    <meta name="theme-color" content="#7B5F35" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Onyx Coffee" />
+    
+    <!-- Favicon -->
+    <link rel="icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/icon.png" />
+    
+    <!-- Google Fonts - Typography System -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    
+    <!-- Preload Critical Resources -->
+    <link rel="preload" href="https://images.unsplash.com/photo-1447933601403-0c6688de566e?w=1600&h=900&fit=crop&crop=center" as="image" />
+    
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Onyx Coffee",
+      "description": "Premium coffee roaster and retailer specializing in single-origin beans and personalized coffee experiences",
+      "url": "https://onyx-coffee.azurewebsites.net",
+      "logo": "https://onyx-coffee.azurewebsites.net/icon.png",
+      "sameAs": [
+        "https://www.instagram.com/onyxcoffee",
+        "https://www.facebook.com/onyxcoffee"
+      ],
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "telephone": "+91-98765-43210",
+        "contactType": "customer service",
+        "availableLanguage": "English"
+      }
+    }
+    </script>
+
+    <style>
+        /* Critical CSS for initial load */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html, body, #root {
+            height: 100%;
+            overflow-x: hidden;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #F7F3E8;
+            color: #1E1A16;
+            line-height: 1.5;
+        }
+        
+        /* Loading screen */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #F7F3E8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            z-index: 9999;
+        }
+        
+        .loading-logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 3rem;
+            font-weight: 700;
+            color: #7B5F35;
+            margin-bottom: 1rem;
+        }
+        
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #F3C37A;
+            border-top: 3px solid #7B5F35;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Hide loading screen when app is ready */
+        .app-loaded .loading-screen {
+            display: none;
+        }
+        
+        /* Accessibility improvements */
+        .visually-hidden {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+        
+        /* Focus styles */
+        *:focus {
+            outline: 2px solid #7B5F35;
+            outline-offset: 2px;
+        }
+        
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        /* Image optimization */
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Loading Screen -->
+    <div class="loading-screen">
+        <div class="loading-logo">Onyx</div>
+        <div class="loading-spinner"></div>
+        <p style="margin-top: 1rem; color: #6B6B6B; text-align: center;">
+            Brewing the perfect experience...
+        </p>
+    </div>
+
+    <!-- Skip Navigation Link for Accessibility -->
+    <a href="#main-content" class="visually-hidden">Skip to main content</a>
+    
+    <!-- Main App Container -->
+    <div id="root"></div>
+    
+    <!-- Main Content Landmark -->
+    <main id="main-content" style="display: none;">
+        <!-- Content will be rendered by React -->
+    </main>
+
+    <!-- Progressive Enhancement Script -->
+    <script>
+        // Remove loading screen when app loads
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                document.body.classList.add('app-loaded');
+                const mainContent = document.getElementById('main-content');
+                if (mainContent) {
+                    mainContent.style.display = 'block';
+                }
+            }, 500);
+        });
+        
+        // Performance monitoring
+        if ('performance' in window) {
+            window.addEventListener('load', function() {
+                setTimeout(function() {
+                    const perfData = performance.timing;
+                    const loadTime = perfData.loadEventEnd - perfData.navigationStart;
+                    console.log('Page load time:', loadTime + 'ms');
+                }, 0);
+            });
+        }
+        
+        // Service worker registration (if available)
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(function(registration) {
+                        console.log('SW registered: ', registration);
+                    })
+                    .catch(function(registrationError) {
+                        console.log('SW registration failed: ', registrationError);
+                    });
+            });
+        }
+    </script>
+</body>
+</html>

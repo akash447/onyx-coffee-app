@@ -11,13 +11,14 @@ export interface CatalogItem {
   roastProfile?: 'light' | 'medium' | 'dark';
   brewStyle?: 'espresso' | 'filter' | 'french-press';
   flavorNotes?: string[];
+  tags?: string[]; // Quality tags like 'premium', 'bestseller', 'organic'
 }
 
 // Navigation and Routing Types
 export type RouteType = 
-  | { kind: 'section'; section: 'product' | 'community' | 'about' | 'admin' | 'cart' }
+  | { kind: 'section'; section: 'home' | 'product' | 'community' | 'about' | 'admin' | 'cart' | 'profile' | 'orders'; view?: string; filter?: string; search?: string; focus?: string }
   | { kind: 'communityPage'; page: 'brew' | 'stories' | 'tips' }
-  | { kind: 'sku'; skuId: string };
+  | { kind: 'sku'; skuId?: string; product?: string };
 
 export type ProductTab = 'personal' | 'explore';
 
