@@ -15,12 +15,14 @@ import {
 import { CatalogItem } from '../../../src/types';
 import { useCatalog } from '../contexts/CatalogContext';
 import { Typography, FontConfig } from '../utils/fonts';
+import ContentController from './ContentController';
 
 const AdminDashboard: React.FC = () => {
   const { items: catalog, addItem, updateItem, deleteItem, clearItems } = useCatalog();
   const [editingItem, setEditingItem] = useState<CatalogItem | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [activeAdminSection, setActiveAdminSection] = useState<'catalog' | 'content'>('catalog');
 
   // Form state for new/editing items
   const [formData, setFormData] = useState({
@@ -263,7 +265,49 @@ const AdminDashboard: React.FC = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Onyx Coffee - Admin Dashboard</Text>
-      <Text style={styles.subtitle}>Central Inventory Management</Text>
+      <Text style={styles.subtitle}>Manage products, content, and website settings</Text>
+
+      {/* Admin Section Toggle */}
+      <View style={styles.sectionToggle}>
+        <Pressable
+          style={[
+            styles.toggleButton,
+            activeAdminSection === 'catalog' && styles.activeToggleButton
+          ]}
+          onPress={() => setActiveAdminSection('catalog')}
+        >
+          <Text style={[
+            styles.toggleButtonText,
+            activeAdminSection === 'catalog' && styles.activeToggleButtonText
+          ]}>
+            📦 Product Catalog
+          </Text>
+        </Pressable>
+        
+        <Pressable
+          style={[
+            styles.toggleButton,
+            activeAdminSection === 'content' && styles.activeToggleButton
+          ]}
+          onPress={() => setActiveAdminSection('content')}
+        >
+          <Text style={[
+            styles.toggleButtonText,
+            activeAdminSection === 'content' && styles.activeToggleButtonText
+          ]}>
+            📝 Content Controller
+          </Text>
+        </Pressable>
+      </View>
+
+      {/* Render Active Section */}
+      {activeAdminSection === 'catalog' ? renderProductCatalog() : <ContentController />}
+    </View>
+  );
+
+  function renderProductCatalog() {
+    return (
+      <View style={styles.catalogSection}>
 
       {/* Action Buttons */}
       <View style={styles.actionButtons}>
@@ -512,8 +556,9 @@ const AdminDashboard: React.FC = () => {
           </ScrollView>
         </View>
       </Modal>
-    </View>
-  );
+      </View>
+    );
+  }
 };
 
 const styles = StyleSheet.create({
@@ -560,6 +605,36 @@ const styles = StyleSheet.create({
     color: 'white',
     fontWeight: '600',
     textAlign: 'center',
+  },
+  sectionToggle: {
+    flexDirection: 'row',
+    backgroundColor: '#E2D8A5',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    marginBottom: 20,
+    overflow: 'hidden',
+  },
+  toggleButton: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+  },
+  activeToggleButton: {
+    backgroundColor: '#000',
+  },
+  toggleButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#000',
+  },
+  activeToggleButtonText: {
+    color: '#fff',
+  },
+  catalogSection: {
+    flex: 1,
   },
   scrollContainer: {
     flex: 1,
